@@ -25,6 +25,12 @@
 ;; - moving between references of a symbol in the same file (inspired by
 ;;   js2-highlight-vars)
 
+;; Installation:
+;;
+;; - npm install in tree-sitter-typescript
+;; - Compile the tree-sitter grammars (gcc -shared -fPIC -fno-exceptions -g -O2 -I src src/scanner.c src/parser.c -o javascript.so)
+;; - Move the three tree-sitter grammars (javascript.so, typescript.so and tsx.so) to a new directory [ultimate-js-mode/libs]
+
 (require 'js)
 (require 'json)
 (require 'tsc)
@@ -73,7 +79,7 @@
    (tree-sitter-load
 	ultimate-js--lang
 	(concat "~/.emacs.d/straight/repos/ultimate-js-mode/libs/"
-			(symbol-name ultimate-js--file-type))))
+			(symbol-name ultimate-js--lang))))
   (setq-local tree-sitter-hl-default-patterns (ultimate-js-mode--get-highlights-queries ultimate-js--lang))
   (setq-local jit-lock-defer-time 0)
   (setq-local font-lock-defaults '(nil t))
@@ -89,11 +95,11 @@
     (insert-file-contents (concat ultimate-js-mode--path file-name))
     (buffer-string)))
 
-(defun ultimate-js-mode--get-highlights-queries (filetype)
-  (let* ((package-json (ultimate-js-mode--read-file (if (equal filetype "js") "tree-sitter-javascript/package.json" "tree-sitter-typescript/package.json")))
+(defun ultimate-js-mode--get-highlights-queries (lang)
+  (let* ((package-json (ultimate-js-mode--read-file (if (eq lang 'javascript) "tree-sitter-javascript/package.json" "tree-sitter-typescript/package.json")))
          (sources (gethash "highlights" (car (gethash "tree-sitter" (json-parse-string package-json :array-type 'list)))))
-		 (sources (if (equal filetype "tsx") (gethash "highlights" (cadr (gethash "tree-sitter" (json-parse-string package-json :array-type 'list)))) sources))
-         (sources (mapcar (lambda (source) (concat "tree-sitter-" (if (equal filetype "js") "javascript/" "typescript/") source)) sources)))
+		 (sources (if (eq lang 'tsx) (gethash "highlights" (cadr (gethash "tree-sitter" (json-parse-string package-json :array-type 'list)))) sources))
+         (sources (mapcar (lambda (source) (concat "tree-sitter-" (if (eq lang 'javascript) "javascript/" "typescript/") source)) sources)))
     (mapconcat #'ultimate-js-mode--read-file sources "\n")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
