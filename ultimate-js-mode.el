@@ -153,6 +153,16 @@ parentheses."
         (forward-char 1)
         (self-insert-command 1 close-char))))
 
+(defun ultimate-js-electric-open-close (char)
+  "Insert two such character, unless there is already one."
+  (lambda ()
+    (interactive)
+    (if (eq char (char-after))
+        (forward-char 1)
+      (self-insert-command 1 char)
+	  (insert char)
+	  (backward-char 1))))
+
 (defun ultimate-js--electric-newline-between-parens (open-char close-char)
   "If the point is right between the open and close chars, insert a new line and
 another one after the point, and indent them."
@@ -289,6 +299,10 @@ Taken from RJSX"
 (define-key ultimate-js-mode-map "}" (ultimate-js-electric-close ?\{ ?\}))
 (define-key ultimate-js-mode-map ")" (ultimate-js-electric-close ?\( ?\)))
 (define-key ultimate-js-mode-map "]" (ultimate-js-electric-close ?\[ ?\]))
+
+(define-key ultimate-js-mode-map "\"" (ultimate-js-electric-open-close ?\"))
+(define-key ultimate-js-mode-map "'"  (ultimate-js-electric-open-close ?'))
+(define-key ultimate-js-mode-map "`"  (ultimate-js-electric-open-close ?`))
 
 (define-key ultimate-js-mode-map "" 'ultimate-js-electric-newline)
 
