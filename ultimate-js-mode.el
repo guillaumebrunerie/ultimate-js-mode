@@ -106,44 +106,50 @@
 ;; Syntax-aware parenthesis electricity ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun ultimate-js-mode--highest-named-node-at-position (position)
-  "Get the named node at buffer POSITION that's at the highest level.
-
-POSITION is a position position in buffer like \\(point-min\\)."
-  (let* ((current-node (tree-sitter-node-at-pos :named position)))
-    ;; move upwards until we either don't have a parent node
-    ;; or we moved out of line
+(defun ultimate-js-mode--highest-node-in-line-at-position (position)
+  "Get the highest node starting at the position and ending on the same line"
+  (let* ((current-node (tree-sitter-node-at-pos nil position)))
     (while (and
             current-node
             (when-let ((parent-node (tsc-get-parent current-node)))
               (when (and ;; parent and current share same position
                      (eq (tsc-node-start-position parent-node)
-                         (tsc-node-start-position current-node)))
-                ;; move upwards to the parent node
-                (setq current-node parent-node)))))
+                         (tsc-node-start-position current-node))
+					 (eq (line-number-at-pos (tsc-node-start-position parent-node))
+						 (line-number-at-pos (tsc-node-end-position parent-node))))
+				;; move upwards to the parent node
+				(setq current-node parent-node)))))
     current-node))
 
 ;;;; Interactive commands and keybindings
 (defun ultimate-js-electric-open (open-char close-char &optional basic)
   "Insert a pair of parentheses around the largest node starting at the
-point and not containing an empty line. If basic, only insert a pair of
+point and contained in the same line. If basic, only insert a pair of
 parentheses."
   (lambda ()
     (interactive)
-    (let* ((node (ultimate-js-mode--highest-named-node-at-position (point)))
-           (will-wrap-node
-            (and (not basic)
-                 (>= (tsc-node-start-position node) (point))
-                 (<= (tsc-node-start-position (tsc-get-parent node)) (point))
-                 (not (string-match-p "\n\n" (tsc-node-text node)))))
-           (size (if will-wrap-node
-                     (- (tsc-node-end-position node)
-                        (point))
-                   0)))
-      (self-insert-command 1 open-char)
-      (forward-char size)
-      (insert close-char)
-      (backward-char (+ 1 size)))))
+	(if (region-active-p)
+		(save-excursion
+		  (let* ((start (region-beginning))
+				 (end (region-end)))
+			(goto-char end)
+			(insert close-char)
+			(goto-char start)
+			(insert open-char)))
+      (let* ((node (ultimate-js-mode--highest-node-in-line-at-position (point)))
+			 (will-wrap-node
+              (and (not basic)
+                   (>= (tsc-node-start-position node) (point))
+                   (<= (tsc-node-start-position (tsc-get-parent node)) (point))
+                   (not (string-match-p "\n" (tsc-node-text node)))))
+			 (size (if will-wrap-node
+                       (- (tsc-node-end-position node)
+                          (point))
+					 0)))
+		(self-insert-command 1 open-char)
+		(forward-char size)
+		(insert close-char)
+		(backward-char (+ 1 size))))))
 
 (defun ultimate-js-electric-close (open-char close-char)
   "Insert a closing character, unless there is already one."
@@ -157,11 +163,19 @@ parentheses."
   "Insert two such character, unless there is already one."
   (lambda ()
     (interactive)
-    (if (eq char (char-after))
-        (forward-char 1)
-      (self-insert-command 1 char)
-	  (insert char)
-	  (backward-char 1))))
+	(if (region-active-p)
+		(save-excursion
+		  (let* ((start (region-beginning))
+				 (end (region-end)))
+			(goto-char end)
+			(insert char)
+			(goto-char start)
+			(insert char)))
+      (if (eq char (char-after))
+          (forward-char 1)
+		(self-insert-command 1 char)
+		(insert char)
+		(backward-char 1)))))
 
 (defun ultimate-js--electric-newline-between-parens (open-char close-char)
   "If the point is right between the open and close chars, insert a new line and
@@ -187,8 +201,7 @@ between parentheses."
 
 (defun ultimate-js--electric-backspace-between-parens (open-char close-char)
   "If the previous character is an opening parenthesis, remove it and the
-corresponding closing parenthesis (TODO: fix the fact that it’s only on the same
-line)"
+corresponding closing parenthesis"
   (when (eq (char-before) open-char)
     (ignore-errors
       (let ((original-line (line-number-at-pos))
@@ -231,6 +244,9 @@ between parentheses, or the previous character."
         ((ultimate-js--electric-backspace-between-parens ?( ?)))
         ((ultimate-js--electric-backspace-between-parens ?[ ?]))
         ((ultimate-js--electric-backspace-between-parens ?{ ?}))
+        ((ultimate-js--electric-backspace-between-parens ?\" ?\"))
+        ((ultimate-js--electric-backspace-between-parens ?' ?'))
+        ((ultimate-js--electric-backspace-between-parens ?` ?`))
         ((ultimate-js--electric-backspace-between-indented-parens ?( ?)))
         ((ultimate-js--electric-backspace-between-indented-parens ?[ ?]))
         ((ultimate-js--electric-backspace-between-indented-parens ?{ ?}))
