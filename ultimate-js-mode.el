@@ -8,16 +8,18 @@
 
 ;;; Description:
 
-;; This package is a major mode for editing JS/JSX/TS/TSX files, tuned to my liking.
-;; It is in very early phase of development.
-;; Another design decision is to leverage existing tools as much as possible, to
-;; write as little code as possible.
+;; This package is a major mode for editing JS/JSX/TS/TSX files, tuned to my
+;; liking. The idea is to leverage existing tools as much as possible, to write
+;; as little code as possible.
+;; It is in very early phase of development. In particular, it works more or less
+;; for JS and JSX, but I haven’t done much about TS and TSX. Indentation for TSX
+;; in particular is most likely completely.broken
 ;;
 ;; In particular, it depends on:
 ;; - the built-in js-mode for automatic identation of JS/JSX
-;; - tree-sitter for highlighting (I needed to fix a few things in the grammar,
-;;   and I have tweaked the highlighting queries)
-;; - LSP-mode for everything that LSP-mode does
+;; - tree-sitter for highlighting (I needed to fix various things in the grammar,
+;;   and I have tweaked the highlighting queries as well)
+;; - (planned) typescript-mode for typescript indentation
 ;;
 ;; In addition, it adds:
 ;; - electricity for parentheses based on the syntax tree
