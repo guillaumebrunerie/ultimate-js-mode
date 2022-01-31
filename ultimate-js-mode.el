@@ -108,6 +108,8 @@
 ;; Syntax-aware parenthesis electricity ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defvar ultimate-js--no-electric-before "[],;)}\n]")
+
 (defun ultimate-js-mode--highest-node-in-line-at-position (position)
   "Get the highest node starting at the position and ending on the same line"
   (let* ((current-node (tree-sitter-node-at-pos nil position)))
@@ -139,12 +141,12 @@ parentheses."
 			(goto-char start)
 			(insert open-char)))
       (let* ((node (ultimate-js-mode--highest-node-in-line-at-position (point)))
-			 (will-wrap-node
+			 (large-node
               (and (not basic)
                    (>= (tsc-node-start-position node) (point))
                    (<= (tsc-node-start-position (tsc-get-parent node)) (point))
-                   (not (string-match-p "\n" (tsc-node-text node)))))
-			 (size (if will-wrap-node
+                   (not (string-match-p ultimate-js--no-electric-before (tsc-node-text node)))))
+			 (size (if large-node
                        (- (tsc-node-end-position node)
                           (point))
 					 0)))
