@@ -55,16 +55,16 @@
   "Major mode for editing JS/JSX/TS/TSX files."
 
   (setq-local ultimate-js--lang 'javascript)
+  (setq-local ultimate-js--is-jsx-tsx nil)
   (let* ((extension (file-name-extension buffer-file-name)))
 	(cond
-	 ((string= extension "jsx") (setq mode-name "UltimateJSX")) ;; TODO: hook into jsx detection instead
+	 ((string= extension "jsx") (setq mode-name "UltimateJSX") (setq ultimate-js--is-jsx-tsx t))
 	 ((string= extension "ts") (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
-	 ((string= extension "tsx") (setq mode-name "UltimateTSX") (setq ultimate-js--lang 'tsx))))
+	 ((string= extension "tsx") (setq mode-name "UltimateTSX") (setq ultimate-js--lang 'tsx) (setq ultimate-js--is-jsx-tsx t))))
 
   (setq-local comment-start "// ")
 
   ;; Indentation for JS/JSX from js-mode
-  (js-jsx--detect-and-enable)
   (setq-local syntax-propertize-function #'js-syntax-propertize)
   (add-hook 'syntax-propertize-extend-region-functions
             #'syntax-propertize-multiline 'append 'local)
@@ -72,6 +72,8 @@
             #'js--syntax-propertize-extend-region 'append 'local)
   (setq-local indent-line-function
               #'js-indent-line)
+  (when ultimate-js--is-jsx-tsx
+	(setq-local js-jsx-syntax t))
   ;; TODO: indentation for TS from typescript-mode + indentation for TSX from
   ;; a combination of typescript-mode and js-mode
 
@@ -103,6 +105,14 @@
 		 (sources (if (eq lang 'tsx) (gethash "highlights" (cadr (gethash "tree-sitter" (json-parse-string package-json :array-type 'list)))) sources))
          (sources (mapcar (lambda (source) (concat "tree-sitter-" (if (eq lang 'javascript) "javascript/" "typescript/") source)) sources)))
     (mapconcat #'ultimate-js-mode--read-file sources "\n")))
+
+
+;; Do not propertize as JSX when we are inside type arguments. Fixes indentation for TSX
+(defun ultimate-js-mode--tsx-fix (orig-fun &rest args)
+  (let* ((type (tsc-node-type (tsc-get-parent (tree-sitter-node-at-point)))))
+	(unless (or (eq type 'type_arguments) (eq type 'predefined_type))
+	  (apply orig-fun args))))
+(advice-add 'js-jsx--syntax-propertize-tag :around #'ultimate-js-mode--tsx-fix)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Syntax-aware parenthesis electricity ;;
