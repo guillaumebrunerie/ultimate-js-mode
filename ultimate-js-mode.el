@@ -30,7 +30,10 @@
 ;; Installation:
 ;;
 ;; - npm install in tree-sitter-typescript
-;; - Compile the tree-sitter grammars (gcc -shared -fPIC -fno-exceptions -g -O2 -I src src/scanner.c src/parser.c -o javascript.so)
+;; - Compile the tree-sitter grammars:
+;;     gcc -shared -fPIC -fno-exceptions -g -O2 -I src src/scanner.c src/parser.c -o javascript.so
+;;     gcc -shared -fPIC -fno-exceptions -g -O2 -I tsx/src tsx/src/scanner.c tsx/src/parser.c -o tsx.so
+;;     gcc -shared -fPIC -fno-exceptions -g -O2 -I typescript/src typescript/src/scanner.c typescript/src/parser.c -o typescript.so
 ;; - Move the three tree-sitter grammars (javascript.so, typescript.so and tsx.so) to a new directory [ultimate-js-mode/libs]
 
 (require 'js)
