@@ -117,7 +117,7 @@
 ;; from js-mode to Typescript.
 (defun ultimate-js-mode--tsx-fix (orig-fun &rest args)
   (let* ((type (tsc-node-type (tsc-get-parent (tree-sitter-node-at-point)))))
-	(unless (or (eq type 'type_arguments) (eq type 'predefined_type))
+	(unless (or (eq type 'type_arguments) (eq type 'predefined_type) (eq type 'type_parameter))
 	  (apply orig-fun args))))
 (advice-add 'js-jsx--syntax-propertize-tag :around #'ultimate-js-mode--tsx-fix)
 
