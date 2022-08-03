@@ -44,15 +44,24 @@
   "infer"
 ] @keyword
 
+(type_predicate
+  "is" @keyword)
+(asserts
+  "asserts" @keyword)
+(ambient_declaration
+  "global" @keyword)
+(ambient_declaration
+  "module" @keyword)
+
 [
   "?"
   ":"
 ] @operator
 
-(type_predicate
-  "is" @keyword)
-(asserts
-  "asserts" @keyword)
-
 ; Template literal types
 (template_literal_type) @string
+
+(template_type
+ "${" @punctuation.special
+ (_) @embedded
+ "}" @punctuation.special)

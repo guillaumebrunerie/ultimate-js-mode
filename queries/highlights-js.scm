@@ -247,7 +247,6 @@
   "try"
   "typeof"
   "var"
-  "void"
   "while"
   "with"
   "yield"
