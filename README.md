@@ -1,37 +1,31 @@
-ultimate-js-mode
-================
+ultimate-js-mode: A major mode for JS/JSX/TS/TSX
+================================================
 
-Description
------------
+Introduction
+------------
 
-This package is a major mode for editing JS/JSX/TS/TSX files. I am developing it
-due to the lack of TSX mode for Emacs, and also because it doesn’t make much
-sense to me to use different modes for JS (js2-mode), JSX (rjsx-mode), TS
-(typescript-mode), and TSX (no good option at the moment). So this major mode is
-meant to work for all of them. This is what the name refers to, a single
-Javascript mode that works for all variants of Javascript that I care about.
+This package is a major mode for editing JS/JSX/TS/TSX files. After having used
+`js2-mode`, `rjsx-mode` and `typescript-mode`, it is the final stop in my search
+for an ultimate major mode that supports all of those variants of Javascript
+simultaneously.
 
-It is in early phase of development and is a bit more complicated to install
-than regular packages, but I’m using it every day and it works just fine for me.
+I suggest you combine it with LSP mode for a more complete developer experience.
 
-What it provides is mostly syntax highlighting, indentation, and some
-electricity. I suggest to combine it with something like LSP mode to get a more
-complete editing experience
+It provides:
+- syntax highlighting, based on tree-sitter with customized grammars and
+  highlighting queries as there are quite a few imperfections in the existing
+  ones
+- indentation, *not* based on tree-sitter (see below) but on js-mode, tweaked to
+  work for Typescript/TSX as well
+- electricity for JSX/TSX tags (inspired by RJSX-mode)
+- syntax-aware electricity for parentheses: when placing an opening parenthesis,
+  it places the closing parenthesis at the end of the subtree starting at point.
+  Maybe should be split up into a separate package as it is not particularly
+  specific to Javascript/Typescript.
 
-For syntax highlighting I disabled some of the upstream rules that I disagree
-with. For instance I don’t think variables representing functions should be
-colored differently, otherwise the following two lines will give different
-colors for `f`,
-`const f = (x, y) => x + y;`
-`const f = memoize((x, y) => x + y);`
-and I don’t think that all caps identifiers should be colored differently,
-otherwise `React` and `PIXI` would be colored differently in:
-`import * as React from "react";`
-`import * as PIXI from "pixi.js";`
-I do want capitalized identifiers to be colored differently, though, as they
-typically represent either React components or "modules", rarely normal values.
-
-I rarely use classes, so they may have more highlighting issues.
+It is in early phase of development and you’ll need to compile the grammars
+yourself for now (see Installation section below), but I am using it every day
+at work and at home, and I am very happy with it.
 
 
 Installation
@@ -39,34 +33,61 @@ Installation
 
 - Make sure you have at least Emacs version 27 (indentation for JSX uses the
   built-in `js-mode` which added support for JSX in Emacs 27).
-- Install `ultimate-js-mode`. If you are using `straight.el` (recommended) the recipe is something
-  like `(:host github :repo "guillaumebrunerie/ultimate-js-mode" :files (:defaults "libs" "queries"))`
+- Install `ultimate-js-mode` and enable it for files with extension `[jt]sx?`.
+  The files in the `libs` and `queries` directory need to be next to the loaded
+  mode file.
+  For instance using `straight.el` and `use-package`:
+  ```
+  (use-package ultimate-js-mode
+    :straight (:host github :repo "guillaumebrunerie/ultimate-js-mode" :files (:defaults "libs" "queries"))
+    :mode "\\.[jt]sx?\\'")
+  ```
 - From the `ultimate-js-mode` directory, compile the tree-sitter grammars into
-  the `libs` directory using the following commands (Linux, maybe Mac, probably
-  not Windows)
+  the `libs` directory using the following commands (works on Linux, need to
+  check for Mac, no idea about Windows)
   `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-javascript/src/{,scanner.c,parser.c} -o libs/javascript.so`
   `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-typescript/typescript/src/{,scanner.c,parser.c} -o libs/typescript.so`
   `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-typescript/tsx/src/{,scanner.c,parser.c} -o libs/tsx.so`
 
 
-Technical details
------------------
+Syntax highlighting
+-------------------
 
-This package uses:
-- tree-sitter for syntax highlighting, the grammar was forked from upstream as
-  there was a few things that needed to be fixed (need to send pull requests),
-  and the highlighting queries were also tweaked from upstream
-- the built-in js-mode for automatic identation of JS/JSX, with some tweaks
-  based on tree-sitter to make it work for TS/TSX as well. There might be still
-  some rough edges for TS/TSX, but it’s already pretty usable.
+Syntax highlighting uses tree-sitter and tweaked versions of the upstream
+highlighting queries. I also tried the queries from `tree-sitter-langs` but it
+had quite a few issues, so I decided to base my version on the upstream queries
+instead.
 
-In addition, it adds the following (ideally it should be possible to disable
-them, but currently it isn’t)
-- electricity for JSX tags (inspired by RJSX-mode)
-- syntax-aware electricity for parentheses: when placing an opening parenthesis,
-  it places the closing parenthesis at the end of the subtree starting at point.
-  Can be interesting sometimes, maybe should be split into a separate package as
-  it is not particularly specific to Javascript/Typescript.
-- (disabled for now) moving between references of a symbol in the same file
-  (inspired by js2-highlight-vars)
+There are a few rules I disabled because I disagree with them.
 
+For instance I don’t think we should attempt to color differently variables
+representing functions, otherwise the following two lines will give different
+colors for `f`:
+`const f = (x, y) => x + y;`
+`const f = memoize((x, y) => x + y);`
+
+I also don’t think that all caps identifiers should be colored differently,
+otherwise `React` and `PIXI` would be colored differently in:
+`import * as React from "react";`
+`import * as PIXI from "pixi.js";`
+
+I do want capitalized identifiers to be colored differently than regular
+variables, though, as they typically represent either React components or
+namespaces/modules, rarely regular values.
+
+
+Indentation
+-----------
+
+I hoped for a while that I would be able to use `tree-sitter` to determine
+perfect indentation, but I realized after some time that it was significantly
+harder than I expected, and even hopeless in some situations. The issue is that
+indentation should work even in incomplete files (when you are in the process of
+writing code) but `tree-sitter` (understandably) often gives bogus trees if the
+file is not syntactically correct. It is acceptable for syntax highlighting, but
+not for indentation unless you add a bunch of special cases. Indenting empty
+lines is also tricky with `tree-sitter` as there is no node to refer to.
+
+Instead I decided to use indentation from the built-in js-mode, which does an
+amazing job at indenting JS/JSX files, and adapted it for TS/TSX. It took
+surprisingly little code (5 lines) and works very well.
