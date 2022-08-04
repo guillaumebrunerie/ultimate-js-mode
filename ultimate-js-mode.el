@@ -78,7 +78,7 @@
 ;; Helper function to return the highlighting queries for a given language.
 (defun ultimate-js-mode--get-highlights-queries (lang)
   (let* ((source-langs (pcase lang
-						 ('javascript '("jsx" "js-params" "js"))
+						 ('javascript '("jsx" "js"))
 						 ('typescript '("ts" "js"))
 						 ('tsx '("ts" "jsx" "js"))))
 		 (sources (mapcar (lambda (source) (concat "queries/highlights-" source ".scm")) source-langs)))

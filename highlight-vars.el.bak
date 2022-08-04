@@ -1,0 +1,297 @@
+;;; tree-sitter-highlight-vars.el --- highlight occurrences of the variable under cursor
+
+;; Copyright (C) 2009  Free Software Foundation, Inc.
+;; Author:  Mihai Bazon <mihai.bazon@gmail.com> (js2-highlight-vars)
+;;          and Guillaume Brunerie <guillaume.brunerie@gmail.com> (adaptation to tree-sitter)
+;; Version: 0.1.0
+;; Package-Requires: (tree-sitter tsc)
+
+;;; Commentary:
+;;
+;; This is a minor mode on top of tree-sitter which highlights all
+;; occurrences of the variable under the cursor within its defining
+;; scope.
+
+;;; Installation:
+;;
+;; Install this package from MELPA using `M-x install-package` and put
+;; the following in your ~/.emacs.d/init.el:
+;; (eval-after-load "js2-highlight-vars-autoloads"
+;;   '(add-hook 'js2-mode-hook (lambda () (js2-highlight-vars-mode))))
+;;
+;; If you aren't already using MELPA, see:
+;; http://melpa.milkbox.net/#/getting-started
+
+;; GNU Emacs is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Code:
+
+(require 'seq)
+
+(defface ultimate-js-highlight-vars-face
+  `((((class color) (background light))
+     (:background "light green"))
+    (((class color) (background dark))
+     (:background "royal blue")))
+  "Face for highlighting variables"
+  :group 'ultimate-js-mode)
+
+(defface ultimate-js-highlight-vars-second-face
+  `((((class color) (background light))
+     (:background "light pink"))
+    (((class color) (background dark))
+     (:background "blue violet")))
+  "Face for highlighting variables"
+  :group 'ultimate-js-mode)
+
+(defvar ultimate-js-highlight-vars-local-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-n")       'ultimate-js--highlight-vars-next)
+    (define-key map (kbd "C-<down>")  'ultimate-js--highlight-vars-next)
+    (define-key map (kbd "M-p")       'ultimate-js--highlight-vars-prev)
+    (define-key map (kbd "C-<up>")    'ultimate-js--highlight-vars-prev)
+    (define-key map (kbd "M-r")       'ultimate-js-highlight-vars-rename)
+    map))
+
+(defconst ultimate-js--scopes '(program statement_block function arrow_function function_declaration method_definition))
+
+(defconst ultimate-js--declaration-query (tsc-make-query (tree-sitter-require 'javascript) "
+(pattern/identifier) @local.definition
+
+(shorthand_property_identifier_pattern) @local.definition
+
+(formal_parameters (identifier) @local.definition)
+(arrow_function . (identifier) @local.definition)
+(function_declaration (identifier) @local.definition.outer)
+
+(variable_declarator
+  name: (identifier) @local.definition)
+
+(import_clause (identifier) @local.definition)
+"))
+
+(defconst ultimate-js--reference-query (tsc-make-query (tree-sitter-require 'javascript) "
+(identifier) @local.reference
+(shorthand_property_identifier) @local.reference
+(shorthand_property_identifier_pattern) @local.reference
+"))
+
+(defun ultimate-js--get-enclosing-scope (node)
+  "Return the nearest scope containing (or equal to) the given node"
+  (while (and node (not (memq (tsc-node-type node) ultimate-js--scopes)))
+    (setq node (tsc-get-parent node)))
+  node)
+
+(defun ultimate-js--is-declaring-scope (scope name)
+  "Return t if the variable /name/ is being declared in the given scope"
+  (let* ((query ultimate-js--declaration-query)
+         (cursor (tsc-make-query-cursor))
+         (declarations (tsc-query-captures query scope #'ts--buffer-substring-no-properties cursor))
+         (result nil))
+    (seq-doseq (capture declarations)
+      (let* ((node (cdr capture))
+             (is-outer (eq (car capture) 'local.definition.outer))
+             (tmp-scope (ultimate-js--get-enclosing-scope node))
+             ;; The scope in which /node/ is defining a variable
+             (defining-scope (if is-outer (ultimate-js--get-enclosing-scope (tsc-get-parent tmp-scope)) tmp-scope)))
+        (when (and (string= name (tsc-node-text node)) (tsc-node-eq defining-scope scope))
+          (setq result t))))
+    result))
+
+(defun ultimate-js--get-declaring-scope (node name)
+  "Get the scope containing the declaration of the variable name above node"
+  (let* ((scope (ultimate-js--get-enclosing-scope node))
+         (found nil))
+    (while (and (not found) scope)
+      (when (ultimate-js--is-declaring-scope scope name)
+        (setq found t))
+      (when (not found)
+        (setq scope (ultimate-js--get-enclosing-scope (tsc-get-parent scope)))))
+    (if found scope (tsc-root-node tree-sitter-tree))))
+
+(defun ultimate-js-declaring-scope-of-node-at-point ()
+  "Debug function"
+  (interactive)
+  (let ((node (tree-sitter-node-at-point)))
+    (tsc-node-text (ultimate-js--get-declaring-scope node (tsc-node-text node)))))
+
+(defun ultimate-js--is-reference (node)
+  "Return non-nil if the node is a reference"
+  (when node
+    (let* ((query ultimate-js--reference-query)
+           (cursor (tsc-make-query-cursor))
+           (references
+            (tsc-query-captures query (or (tsc-get-parent node) node)
+                                #'ts--buffer-substring-no-properties cursor)))
+      (seq-some (lambda (capture) (tsc-node-eq (cdr capture) node)) references))))
+
+(defun ultimate-js--extends-to (node name)
+  ""
+  (if (string= (tsc-node-text node) name)
+      t
+    (if (> (length (tsc-node-text node)) (length name))
+        nil
+      (ultimate-js--extends-to (tsc-get-parent node) name))))
+
+(defun ultimate-js--get-references (scope name full-name)
+  "Return all references of /name/ in /scope/, that extend to full-node"
+  (let* ((query ultimate-js--reference-query)
+         (cursor (tsc-make-query-cursor))
+         (references (tsc-query-captures query scope #'ts--buffer-substring-no-properties cursor))
+         (result nil))
+    (seq-doseq (capture references)
+      (let ((node (cdr capture)))
+        (when (and (string= (tsc-node-text node) name)
+                   (ultimate-js--extends-to node full-name)
+                   (tsc-node-eq scope (ultimate-js--get-declaring-scope node name)))
+          (setq result (cons node result)))))
+    result))
+
+(defun ultimate-js--get-reference-at-pos (pos)
+  "Return (inner . outer) (if possible) where inner is a
+reference (if there is one) and outer the member expression at
+the position"
+  (let ((node (tree-sitter-node-at-pos nil pos)))
+    (if (ultimate-js--is-reference node)
+        (cons node node)
+      (when (and (eq (tsc-node-type node) 'property_identifier)
+                 (or (eq (tsc-node-type (tsc-get-parent node)) 'member_expression)
+                     (eq (tsc-node-type (tsc-get-parent node)) 'nested_identifier)))
+        (cons (tree-sitter-node-at-pos nil (tsc-node-start-position (tsc-get-parent node))) (tsc-get-parent node))))))
+
+(defun ultimate-js--get-reference-at-point ()
+  "Return the node at/just before the point that is a reference (if there is one)"
+  (or (ultimate-js--get-reference-at-pos (point))
+      (ultimate-js--get-reference-at-pos (- (point) 1))))
+
+(defun ultimate-js--do-highlight-vars ()
+  "Highlight variable under cursor within the defining scope"
+  (interactive)
+  (setq ultimate-js--highlight-vars-post-command-timer nil)
+  (unless ultimate-js--highlight-vars-tokens
+    (let* ((nodenode (ultimate-js--get-reference-at-point))
+           (node (and nodenode (car nodenode)))
+           (full-name (and nodenode (tsc-node-text (cdr nodenode))))
+           (name (and node (tsc-node-text node)))
+           (scope (and node (ultimate-js--get-declaring-scope node name)))
+           (references (and scope (ultimate-js--get-references scope name full-name)))
+           (token (and node (tsc-node-start-position node))))
+      (when node
+        (setq ultimate-js--highlight-vars-current-token token
+              ultimate-js--highlight-vars-current-token-name full-name)
+        (dolist (node references)
+          (let* ((beg (tsc-node-start-position node))
+                 (end (+ beg (length full-name)))
+                 (ovl (make-overlay beg end)))
+            (overlay-put ovl 'keymap ultimate-js-highlight-vars-local-keymap)
+            (overlay-put ovl 'face 'ultimate-js-highlight-vars-face)
+            (overlay-put ovl 'evaporate t)
+            (overlay-put ovl 'ultimate-js-highlight-vars t)
+            (setq ultimate-js--highlight-vars-tokens (cons beg ultimate-js--highlight-vars-tokens))))
+        t))))
+
+(defun ultimate-js--highlight-vars-next ()
+  (interactive)
+  (let ((inhibit-point-motion-hooks t)
+        (diff (- (point) ultimate-js--highlight-vars-current-token))
+        (next (catch 'done
+                (dolist (pos ultimate-js--highlight-vars-tokens)
+                  (when (> pos (point))
+                    (throw 'done pos))))))
+    (when next
+      (setq ultimate-js--highlight-vars-current-token next)
+      (goto-char next)
+      (forward-char diff))))
+
+(defun ultimate-js--highlight-vars-prev ()
+  (interactive)
+  (let ((inhibit-point-motion-hooks t)
+        (diff (- (point) ultimate-js--highlight-vars-current-token))
+        (prev (catch 'done
+                (dolist (pos (reverse ultimate-js--highlight-vars-tokens))
+                  (when (and (< pos (point))
+                             (not (= pos ultimate-js--highlight-vars-current-token)))
+                    (throw 'done pos))))))
+    (when prev
+      (setq ultimate-js--highlight-vars-current-token prev)
+      (goto-char prev)
+      (forward-char diff))))
+
+;; (defun js2-highlight-vars-rename (new-name)
+;;   (interactive "*sRename variable to: ")
+;;   (let ((len (length js2--highlight-vars-current-token-name))
+;;         (inhibit-point-motion-hooks t)
+;;         (ovl (make-overlay 1 1))
+;;         (all nil)
+;;         doit)
+;;     (unwind-protect
+;;         (progn
+;;           (overlay-put ovl 'face 'highlight)
+;;           (dolist (pos (mapcar (lambda(pos)
+;;                                  (let ((m (make-marker)))
+;;                                    (set-marker m pos))) js2--highlight-vars-tokens))
+;;             (goto-char pos)
+;;             (move-overlay ovl pos (+ pos len))
+;;             (setq doit (if all
+;;                            ?y
+;;                          (read-char "Replace this occurrence? (y/n/!)")))
+;;             (when (= doit ?!)
+;;               (setq all t
+;;                     doit ?y))
+;;             (when (= doit ?y)
+;;               (insert new-name)
+;;               (delete-char len))))
+;;       (delete-overlay ovl))))
+
+(defun ultimate-js--unhighlight-vars (&rest ignore)
+  (setq ultimate-js--highlight-vars-tokens nil
+        ultimate-js--highlight-vars-current-token -1)
+  (remove-overlays (point-min) (point-max)
+                   'ultimate-js-highlight-vars t))
+
+(defun ultimate-js-highlight-vars-post-command-hook ()
+  (ignore-errors
+    (let* ((overlays (overlays-at (point)))
+           (ovl (and overlays
+                     (catch 'found
+                       (dolist (ovl overlays)
+                         (when (overlay-get ovl 'ultimate-js-highlight-vars)
+                           (throw 'found ovl)))
+                       nil))))
+      (if (and ovl
+               (string= ultimate-js--highlight-vars-current-token-name
+                        (buffer-substring (overlay-start ovl)
+                                          (overlay-end ovl))))
+          (setq ultimate-js--highlight-vars-current-token (overlay-start ovl))
+        (ultimate-js--unhighlight-vars)
+        (when ultimate-js--highlight-vars-post-command-timer
+          (cancel-timer ultimate-js--highlight-vars-post-command-timer))
+        (setq ultimate-js--highlight-vars-post-command-timer
+              (run-with-timer 0.2 nil 'ultimate-js--do-highlight-vars))))))
+
+;;;###autoload
+(define-minor-mode ultimate-js-highlight-vars-mode
+  "Minor mode that highlights occurrences of the variable under
+cursor in buffers with ultimate-js"
+  nil " vars" nil
+  (setq-local ultimate-js--highlight-vars-tokens nil)
+  (setq-local ultimate-js--highlight-vars-current-token -1)
+  (setq-local ultimate-js--highlight-vars-current-token-name nil)
+  (setq-local ultimate-js--highlight-vars-post-command-timer nil)
+  (if ultimate-js-highlight-vars-mode
+      (add-hook 'post-command-hook 'ultimate-js-highlight-vars-post-command-hook nil t)
+    (remove-hook 'post-command-hook 'ultimate-js-highlight-vars-post-command-hook t)
+    (ultimate-js--unhighlight-vars)))
+
+(provide 'ultimate-js-highlight-vars)

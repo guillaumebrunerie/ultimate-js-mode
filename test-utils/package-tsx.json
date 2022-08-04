@@ -1,0 +1,15 @@
+{
+  "tree-sitter": [
+    {
+      "file-types": [
+        "tsx"
+      ],
+      "highlights": [
+        "queries/highlights-ts.scm",
+        "queries/highlights-jsx.scm",
+        "queries/highlights-js.scm"
+      ],
+      "injection-regex": "^(js|javascript)$"
+    }
+  ]
+}

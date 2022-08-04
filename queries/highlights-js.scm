@@ -1,13 +1,58 @@
+; Parameters
+;-----------
+
+(arrow_function
+ parameter: (identifier) @variable)
+
+; The underscore is a trick to handle formal_parameters in JS while still having a
+; valid rule in TS
+(arrow_function
+ parameters: (_ (identifier) @variable))
+
+(assignment_pattern
+ left: (identifier) @variable)
+
+(object_assignment_pattern
+ left: (shorthand_property_identifier_pattern) @variable)
+
+(rest_pattern
+ (identifier) @variable)
+
+(class_declaration
+ name: (_) @constructor)
+
+; Function and method definitions
+;--------------------------------
+
+(function
+  name: (identifier) @function)
+(function_declaration
+  name: (identifier) @function)
+(method_definition
+ name: (property_identifier) @keyword
+ (#match? @keyword "constructor"))
+(method_definition
+  name: (property_identifier) @property.definition)
+
+; Function and method calls
+;--------------------------
+
+(call_expression
+  function: (identifier) @function.call)
+
+(call_expression
+  function: (member_expression
+    property: (property_identifier) @function.method.call))
+
+; Properties definitions
+;-----------------------
+
+(pair key: (property_identifier) @property.definition)
+(pair_pattern key: (property_identifier) @property.definition)
+
+
 ; Special identifiers
 ;--------------------
-
-;; ([
-;;     (identifier)
-;;     (shorthand_property_identifier)
-;;     (shorthand_property_identifier_pattern)
-;;  ] @constant
-;;  (#match? @constant "^[A-Z_][A-Z\\d_]+$"))
-
 
 ((identifier) @constructor
  (#match? @constructor "^[A-Z]"))
@@ -23,69 +68,21 @@
  (#eq? @function.builtin "require")
  (#is-not? local))
 
-; Function and method definitions
-;--------------------------------
-
-(function
-  name: (identifier) @function)
-(function_declaration
-  name: (identifier) @function)
-(method_definition
-  name: (property_identifier) @function.method)
-
-;; (pair
-;;   key: (property_identifier) @function.method
-;;   value: [(function) (arrow_function)])
-
-;; (assignment_expression
-;;   left: (member_expression
-;;     property: (property_identifier) @function.method)
-;;   right: [(function) (arrow_function)])
-
-(assignment_expression
-  left: (member_expression
-    property: (property_identifier) @property.definition))
-
-(augmented_assignment_expression
-  left: (member_expression
-    property: (property_identifier) @variable))
-
-(update_expression
-  (member_expression
-    property: (property_identifier) @variable))
-
-(assignment_expression
-  left: (identifier) @variable)
-
-(augmented_assignment_expression
-  left: (identifier) @variable)
-
-(update_expression
-  (identifier) @variable)
-
-;; (variable_declarator
-;;   name: (identifier) @function
-;;   value: [(function) (arrow_function)])
-
-;; (assignment_expression
-;;   left: (identifier) @function
-;;   right: [(function) (arrow_function)])
-
-; Function and method calls
-;--------------------------
-
-(call_expression
-  function: (identifier) @function.call)
-
-(call_expression
-  function: (member_expression
-    property: (property_identifier) @function.method.call))
-
 ; Definitions
 ;------------
 
 (array_pattern (identifier) @variable)
 (variable_declarator . (identifier) @variable)
+
+; Properties
+;-----------
+
+(member_expression
+ property: (property_identifier) @property)
+
+; Imports
+;--------
+
 (import_clause (identifier) @variable)
 (import_specifier
   name: (identifier) @property
@@ -101,6 +98,7 @@
   (rest_pattern (identifier) @variable)
   ])
 
+
 ; Variables
 ;----------
 
@@ -110,41 +108,13 @@
     (shorthand_property_identifier_pattern)
  ] @variable.call)
 
-; Properties
-;-----------
-
-(property_identifier) @property
-
-; Literals
-;---------
-
-(this) @variable.builtin
-(super) @variable.builtin
-
-[
-  (true)
-  (false)
-  (null)
-  (undefined)
-] @constant.builtin
-
-(comment) @comment
-
-(template_substitution
- "${" @punctuation.special
- (_) @embedded
- "}" @punctuation.special)
-
-[
-  (string)
-  (template_string)
-] @string
-
-(regex) @string.special
-(number) @number
 
 ; Tokens
 ;-------
+
+(template_substitution
+ "${" @punctuation.special
+ "}" @punctuation.special)
 
 [
   ";"
@@ -251,3 +221,31 @@
   "with"
   "yield"
 ] @keyword
+
+
+; Literals
+;---------
+
+(this) @variable.builtin
+(super) @variable.builtin
+
+[
+  (true)
+  (false)
+  (null)
+  (undefined)
+] @constant.builtin
+
+(comment) @comment
+
+(string) @string
+
+(template_substitution
+ "${" @punctuation.special
+ (_) @embedded
+ "}" @punctuation.special)
+
+(template_string) @string
+
+(regex) @string.special
+(number) @number

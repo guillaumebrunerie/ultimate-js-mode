@@ -28,6 +28,13 @@ yourself for now (see Installation section below), but I am using it every day
 at work and at home, and I am very happy with it.
 
 
+Main contributions
+------------------
+
+- Typescript/TSX indentation based on js-mode and with the help of tree-sitter.
+- Improved grammars and syntax highlighting compared to upstream and `tree-sitter-langs`
+
+
 Installation
 ------------
 
@@ -43,8 +50,8 @@ Installation
     :mode "\\.[jt]sx?\\'")
   ```
 - From the `ultimate-js-mode` directory, compile the tree-sitter grammars into
-  the `libs` directory using the following commands (works on Linux, need to
-  check for Mac, no idea about Windows)
+  the `libs` directory using the following commands (works on Linux and Mac, no
+  idea about Windows)
   `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-javascript/src/{,scanner.c,parser.c} -o libs/javascript.so`
   `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-typescript/typescript/src/{,scanner.c,parser.c} -o libs/typescript.so`
   `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-typescript/tsx/src/{,scanner.c,parser.c} -o libs/tsx.so`
@@ -74,6 +81,13 @@ otherwise `React` and `PIXI` would be colored differently in:
 I do want capitalized identifiers to be colored differently than regular
 variables, though, as they typically represent either React components or
 namespaces/modules, rarely regular values.
+
+The general principle about identifiers is that there are three different kind
+of identifiers: values, types, and special values (capitalized values), and each
+occurence of an identifier is either a binding/definition/parameter or a usage.
+This means there should be 3×2 different colors for identifier.
+In my current theme, types are green (brighter for binders), special values are
+blue (brighter for binders), and values are yellow/white for binders/uses.
 
 
 Indentation
