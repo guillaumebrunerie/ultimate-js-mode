@@ -57,3 +57,6 @@ import * as styled from "styled";
 
 const SBlock = styled.div`display: block;`
 //    ^ constructor
+
+for (const a of b) {}
+//         ^ variable

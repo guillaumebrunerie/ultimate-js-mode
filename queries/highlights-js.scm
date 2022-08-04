@@ -21,6 +21,9 @@
 (class_declaration
  name: (_) @constructor)
 
+(for_in_statement
+ left: (identifier) @variable)
+
 ; Function and method definitions
 ;--------------------------------
 
