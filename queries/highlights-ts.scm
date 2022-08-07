@@ -68,6 +68,7 @@
   "readonly"
   "override"
   "infer"
+  "module"
 ] @keyword
 
 (type_predicate
@@ -76,8 +77,6 @@
   "asserts" @keyword)
 (ambient_declaration
   "global" @keyword)
-(ambient_declaration
-  "module" @keyword)
 (as_expression
   "const" @keyword)
 

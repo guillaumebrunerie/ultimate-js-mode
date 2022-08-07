@@ -61,3 +61,10 @@ export class MyClass {
   constructor();
 //^ keyword
 }
+
+declare global {};
+//      ^ keyword
+declare module a {};
+//      ^ keyword
+
+export type {A} from "a";

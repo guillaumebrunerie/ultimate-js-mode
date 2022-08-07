@@ -60,3 +60,5 @@ const SBlock = styled.div`display: block;`
 
 for (const a of b) {}
 //         ^ variable
+
+export {a} from "b";
