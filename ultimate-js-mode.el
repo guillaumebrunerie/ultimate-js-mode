@@ -116,7 +116,7 @@
 ;; adapting that to TSX seems significantly harder than adapting indentation
 ;; from js-mode to Typescript.
 (defun ultimate-js-mode--tsx-fix (orig-fun &rest args)
-  (let* ((type (tsc-node-type (tsc-get-parent (tree-sitter-node-at-point)))))
+  (let* ((type (tsc-node-type (tsc-get-parent (tree-sitter-node-at-pos)))))
 	(unless (or (eq type 'type_arguments) (eq type 'predefined_type) (eq type 'type_parameter))
 	  (apply orig-fun args))))
 (advice-add 'js-jsx--syntax-propertize-tag :around #'ultimate-js-mode--tsx-fix)
@@ -172,7 +172,7 @@ parentheses."
 		(insert close-char)
 		(backward-char (+ 1 size))))))
 
-(defun ultimate-js-electric-close (open-char close-char)
+(defun ultimate-js-electric-close (_open-char close-char)
   "Insert a closing character, unless there is already one."
   (lambda ()
     (interactive)
@@ -214,13 +214,13 @@ another one after the point, and indent them."
   "Insert a new line, and potentially a new one plus indentation if we are
 between parentheses."
   (interactive)
-  (cond ((ultimate-js--electric-newline-between-parens ?( ?)))
-        ((ultimate-js--electric-newline-between-parens ?[ ?]))
+  (cond ((ultimate-js--electric-newline-between-parens ?\( ?\)))
+        ((ultimate-js--electric-newline-between-parens ?\[ ?\]))
         ((ultimate-js--electric-newline-between-parens ?{ ?}))
         ((ultimate-js--electric-newline-between-parens ?> ?<))
         (t (newline 1 t))))
 
-(defun ultimate-js--electric-backspace-between-parens (open-char close-char)
+(defun ultimate-js--electric-backspace-between-parens (open-char _close-char)
   "If the previous character is an opening parenthesis, remove it and the
 corresponding closing parenthesis"
   (when (eq (char-before) open-char)
@@ -262,14 +262,14 @@ whitespace"
 between parentheses, or the previous character."
   (interactive)
   (cond ((use-region-p) (delete-active-region))
-        ((ultimate-js--electric-backspace-between-parens ?( ?)))
-        ((ultimate-js--electric-backspace-between-parens ?[ ?]))
+        ((ultimate-js--electric-backspace-between-parens ?\( ?\)))
+        ((ultimate-js--electric-backspace-between-parens ?\[ ?\]))
         ((ultimate-js--electric-backspace-between-parens ?{ ?}))
         ((ultimate-js--electric-backspace-between-parens ?\" ?\"))
         ((ultimate-js--electric-backspace-between-parens ?' ?'))
         ((ultimate-js--electric-backspace-between-parens ?` ?`))
-        ((ultimate-js--electric-backspace-between-indented-parens ?( ?)))
-        ((ultimate-js--electric-backspace-between-indented-parens ?[ ?]))
+        ((ultimate-js--electric-backspace-between-indented-parens ?\( ?\)))
+        ((ultimate-js--electric-backspace-between-indented-parens ?\[ ?\]))
         ((ultimate-js--electric-backspace-between-indented-parens ?{ ?}))
         (t (delete-char -1))))
 
@@ -309,7 +309,7 @@ the name of the tag, otherwise return nil."
   (if (and (looking-at-p "/>")
            (eq (char-before) ?<))
       ""
-    (let* ((node (tree-sitter-node-at-point))
+    (let* ((node (tree-sitter-node-at-pos))
            (parent (and node (tsc-get-parent node))))
       (when (and node
                  parent

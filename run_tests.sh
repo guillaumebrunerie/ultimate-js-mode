@@ -25,7 +25,7 @@ cp -r $ROOT/queries/highlights-js* queries
 mkdir -p $TEST
 cp $ROOT/tests/regression.js $TEST/regression.js
 cp $UTILS/package-js.json package.json
-npx tree-sitter test || exit 1
+tree-sitter test || exit 1
 cd $ROOT
 rm -rf $TEST_TMP
 echo
@@ -44,7 +44,7 @@ mkdir -p $TEST
 cp $ROOT/tests/regression.js $TEST/regression-js.ts
 cp $ROOT/tests/regression.ts $TEST/regression.ts
 cp $UTILS/package-ts.json package.json
-npx tree-sitter test || exit 1
+tree-sitter test || exit 1
 cd $ROOT
 rm -rf $TEST_TMP
 echo
@@ -64,6 +64,6 @@ cp $ROOT/tests/regression.js $TEST/regression-js.tsx
 cp $ROOT/tests/regression.ts $TEST/regression-ts.tsx
 cp $ROOT/tests/regression.tsx $TEST/regression.tsx
 cp $UTILS/package-tsx.json package.json
-npx tree-sitter test || exit 1
+tree-sitter test || exit 1
 cd $ROOT
 rm -rf $TEST_TMP
