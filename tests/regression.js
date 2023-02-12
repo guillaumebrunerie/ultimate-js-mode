@@ -65,3 +65,6 @@ for (const a of b) {}
 //         ^ variable
 
 export {a} from "b";
+
+const a = void 3;
+//        ^ keyword

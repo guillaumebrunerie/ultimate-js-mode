@@ -225,6 +225,7 @@
   "yield"
 ] @keyword
 
+(unary_expression "void" @keyword)
 
 ; Literals
 ;---------

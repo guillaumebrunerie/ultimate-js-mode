@@ -72,3 +72,6 @@ export type {A} from "a";
 
 export {a, type C} from "a";
 //              ^ type
+
+const f: (abc: number) => void = (abc) => void abc;
+//                        ^ type.builtin  ^ keyword
