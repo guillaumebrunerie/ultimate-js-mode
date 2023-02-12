@@ -68,3 +68,7 @@ declare module a {};
 //      ^ keyword
 
 export type {A} from "a";
+//           ^ type
+
+export {a, type C} from "a";
+//              ^ type

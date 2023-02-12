@@ -31,7 +31,7 @@
 ;;;###autoload
 (define-derived-mode ultimate-js-mode prog-mode "UltimateJS"
   :group 'ultimate-js
-  "Major mode for editing JS/JSX/TS/TSX files."
+  "Major mode for editing JS/JSX/TS/TSX/JSON files."
 
   ;; The name of the tree-sitter grammar, `javascript` for both .js and .jsx,
   ;; `typescript` for .ts, and `tsx` for .tsx
@@ -41,6 +41,7 @@
   ;; Determine the language based on the file extension
   (let* ((extension (file-name-extension buffer-file-name)))
 	(cond
+	 ((string= extension "json") (setq mode-name "UltimateJSON"))
 	 ((string= extension "jsx") (setq mode-name "UltimateJSX") (setq ultimate-js--is-jsx-tsx t))
 	 ((string= extension "ts") (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
 	 ((string= extension "tsx") (setq mode-name "UltimateTSX") (setq ultimate-js--lang 'tsx) (setq ultimate-js--is-jsx-tsx t))))
@@ -125,7 +126,7 @@
 ;; Syntax-aware parenthesis electricity ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar ultimate-js--no-electric-before "[],;)}\n]")
+(defvar ultimate-js--no-electric-before "[],;)}\n>`]")
 
 (defun ultimate-js-mode--highest-node-in-line-at-position (position)
   "Get the highest node starting at the position and ending on the same line"

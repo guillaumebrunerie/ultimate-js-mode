@@ -9,14 +9,16 @@ This package is a major mode for editing JS/JSX/TS/TSX files. After having used
 for an ultimate major mode that supports all of those variants of Javascript
 simultaneously.
 
-I suggest you combine it with LSP mode for a more complete developer experience.
+I suggest you combine it with LSP mode (or maybe eglot) for a more complete
+developer experience. You may also be interested in my `init.el` and my theme,
+which you can find at `github.com/guillaumebrunerie/dotfiles`.
 
 It provides:
 - syntax highlighting, based on tree-sitter with customized grammars and
   highlighting queries as there are quite a few imperfections in the existing
   ones
 - indentation, *not* based on tree-sitter (see below) but on js-mode, tweaked to
-  work for Typescript/TSX as well
+  work in a satisfactory way for Typescript/TSX as well
 - electricity for JSX/TSX tags (inspired by RJSX-mode)
 - syntax-aware electricity for parentheses: when placing an opening parenthesis,
   it places the closing parenthesis at the end of the subtree starting at point.
@@ -40,14 +42,14 @@ Installation
 
 - Make sure you have at least Emacs version 27 (indentation for JSX uses the
   built-in `js-mode` which added support for JSX in Emacs 27).
-- Install `ultimate-js-mode` and enable it for files with extension `[jt]sx?`.
+- Install `ultimate-js-mode` and enable it for files with extension `[jt]sx?|json`.
   The files in the `libs` and `queries` directory need to be next to the loaded
   mode file.
   For instance using `straight.el` and `use-package`:
   ```
   (use-package ultimate-js-mode
     :straight (:host github :repo "guillaumebrunerie/ultimate-js-mode" :files (:defaults "libs" "queries"))
-    :mode "\\.[jt]sx?\\'")
+    :mode ("\\.[jt]sx?\\'" "\\.json\\'")
   ```
 - From the `ultimate-js-mode` directory, compile the tree-sitter grammars into
   the `libs` directory using the following commands (works on Linux and Mac, no
@@ -80,7 +82,7 @@ otherwise `React` and `PIXI` would be colored differently in:
 
 I do want capitalized identifiers to be colored differently than regular
 variables, though, as they typically represent either React components or
-namespaces/modules, rarely regular values.
+namespaces/modules, but rarely regular values.
 
 The general principle about identifiers is that there are three different kind
 of identifiers: values, types, and special values (capitalized values), and each
@@ -100,7 +102,7 @@ indentation should work even in incomplete files (when you are in the process of
 writing code) but `tree-sitter` (understandably) often gives bogus trees if the
 file is not syntactically correct. It is acceptable for syntax highlighting, but
 not for indentation unless you add a bunch of special cases. Indenting empty
-lines is also tricky with `tree-sitter` as there is no node to refer to.
+lines is also very tricky with `tree-sitter` as there is no node to refer to.
 
 Instead I decided to use indentation from the built-in js-mode, which does an
 amazing job at indenting JS/JSX files, and adapted it for TS/TSX. It took

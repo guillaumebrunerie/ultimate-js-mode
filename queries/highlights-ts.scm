@@ -50,6 +50,8 @@
 
 (import_specifier "type" (identifier) @type.parameter)
 (import_statement "import" "type" (import_clause (named_imports (import_specifier (identifier) @type.parameter))))
+(export_specifier "type" (identifier) @type)
+(export_statement "export" "type" (export_clause (export_specifier (identifier) @type)))
 
 ; Keywords
 

@@ -1,3 +1,6 @@
+#!/test/hashline
+// ^ comment
+
 const f1 = x => x;
 //         ^ variable
 
