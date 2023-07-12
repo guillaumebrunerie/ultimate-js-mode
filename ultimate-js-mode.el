@@ -126,7 +126,7 @@
 ;; Syntax-aware parenthesis electricity ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar ultimate-js--no-electric-before "[],;)}\n>`\"/]")
+(defvar ultimate-js--no-electric-before "[],;)}\n>`\"/.-]")
 
 (defun ultimate-js-mode--highest-node-in-line-at-position (position)
   "Get the highest node starting at the position and ending on the same line"
