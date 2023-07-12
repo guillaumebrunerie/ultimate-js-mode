@@ -5,18 +5,17 @@ Introduction
 ------------
 
 This package is a major mode for editing JS/JSX/TS/TSX files. After having used
-`js2-mode`, `rjsx-mode` and `typescript-mode`, it is the final stop in my search
-for an ultimate major mode that supports all of those variants of Javascript
-simultaneously.
+`js2-mode`, `rjsx-mode` and `typescript-mode`, I consider it the final stop in
+my search for an ultimate major mode that supports all of those variants of
+Javascript simultaneously.
 
 I suggest you combine it with LSP mode (or maybe eglot) for a more complete
 developer experience. You may also be interested in my `init.el` and my theme,
 which you can find at `github.com/guillaumebrunerie/dotfiles`.
 
 It provides:
-- syntax highlighting, based on tree-sitter with customized grammars and
-  highlighting queries as there are quite a few imperfections in the existing
-  ones
+- syntax highlighting, based on tree-sitter with customized highlighting queries
+  as there are quite a few imperfections in the existing ones
 - indentation, *not* based on tree-sitter (see below) but on js-mode, tweaked to
   work in a satisfactory way for Typescript/TSX as well
 - electricity for JSX/TSX tags (inspired by RJSX-mode)
@@ -25,16 +24,16 @@ It provides:
   Maybe should be split up into a separate package as it is not particularly
   specific to Javascript/Typescript.
 
-It is in early phase of development and you’ll need to compile the grammars
-yourself for now (see Installation section below), but I am using it every day
-at work and at home, and I am very happy with it.
+You will need to compile the grammars yourself for now (see Installation section
+below), but I am using it every day at work and at home, and I am very happy
+with it.
 
 
 Main contributions
 ------------------
 
 - Typescript/TSX indentation based on js-mode and with the help of tree-sitter.
-- Improved grammars and syntax highlighting compared to upstream and `tree-sitter-langs`
+- Improved syntax highlighting compared to upstream and `tree-sitter-langs`
 
 
 Installation
@@ -52,11 +51,8 @@ Installation
     :mode ("\\.[jt]sx?\\'" "\\.json\\'")
   ```
 - From the `ultimate-js-mode` directory, compile the tree-sitter grammars into
-  the `libs` directory using the following commands (works on Linux and Mac, no
-  idea about Windows)
-  `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-javascript/src/{,scanner.c,parser.c} -o libs/javascript.so`
-  `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-typescript/typescript/src/{,scanner.c,parser.c} -o libs/typescript.so`
-  `gcc -shared -fPIC -fno-exceptions -g -O2 -I tree-sitter-typescript/tsx/src/{,scanner.c,parser.c} -o libs/tsx.so`
+  the `libs` directory using the `compile.sh` script (works on Linux and Mac, no
+  idea about Windows).
 
 
 Syntax highlighting

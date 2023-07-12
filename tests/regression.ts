@@ -75,3 +75,11 @@ export {a, type C} from "a";
 
 const f: (abc: number) => void = (abc) => void abc;
 //                        ^ type.builtin  ^ keyword
+
+type StringToNumber<T> = T extends `${infer N extends number}`? N: never;
+//                                    ^ keyword
+//                                            ^ keyword
+
+const f = <const T extends string>(x: T) => x;
+//         ^ keyword
+//                 ^ keyword

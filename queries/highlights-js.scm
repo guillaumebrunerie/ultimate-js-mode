@@ -57,6 +57,9 @@
 ; Special identifiers
 ;--------------------
 
+((identifier) @number
+ (#match? @number "^(Infinity|NaN)$"))
+
 ((identifier) @constructor
  (#match? @constructor "^[A-Z]"))
 
@@ -121,7 +124,7 @@
 
 [
   ";"
-  "?."
+  (optional_chain)
   "."
   ","
 ] @punctuation.delimiter

@@ -68,3 +68,7 @@ export {a} from "b";
 
 const a = void 3;
 //        ^ keyword
+
+const x = Infinity + NaN;
+//        ^ number
+//                   ^ number
