@@ -71,6 +71,7 @@
   "override"
   "infer"
   "module"
+  "extends"
 ] @keyword
 
 (type_predicate
