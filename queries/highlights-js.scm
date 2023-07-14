@@ -1,3 +1,23 @@
+; Special identifiers
+;--------------------
+
+((identifier) @number
+ (#match? @number "^(Infinity|NaN)$"))
+
+((identifier) @constructor
+ (#match? @constructor "^[A-Z]"))
+
+(member_expression (property_identifier) @constructor
+ (#match? @constructor "^[A-Z]"))
+
+((identifier) @variable.builtin
+ (#match? @variable.builtin "^(arguments|module|console|window|document)$")
+ (#is-not? local))
+
+((identifier) @function.builtin
+ (#eq? @function.builtin "require")
+ (#is-not? local))
+
 ; Parameters
 ;-----------
 
@@ -52,27 +72,6 @@
 
 (pair key: (property_identifier) @property.definition)
 (pair_pattern key: (property_identifier) @property.definition)
-
-
-; Special identifiers
-;--------------------
-
-((identifier) @number
- (#match? @number "^(Infinity|NaN)$"))
-
-((identifier) @constructor
- (#match? @constructor "^[A-Z]"))
-
-((property_identifier) @constructor
- (#match? @constructor "^[A-Z]"))
-
-((identifier) @variable.builtin
- (#match? @variable.builtin "^(arguments|module|console|window|document)$")
- (#is-not? local))
-
-((identifier) @function.builtin
- (#eq? @function.builtin "require")
- (#is-not? local))
 
 ; Definitions
 ;------------

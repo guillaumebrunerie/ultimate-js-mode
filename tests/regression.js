@@ -72,3 +72,12 @@ const a = void 3;
 const x = Infinity + NaN;
 //        ^ number
 //                   ^ number
+
+function B() {};
+//       ^ constructor
+
+function b() {};
+//       ^ function
+
+const [A = 3] = [];
+//     ^ constructor
