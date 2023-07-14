@@ -83,3 +83,6 @@ type StringToNumber<T> = T extends `${infer N extends number}`? N: never;
 const f = <const T extends string>(x: T) => x;
 //         ^ keyword
 //                 ^ keyword
+
+type S<T> = T extends ((v: infer N extends U) => void) ? N : never;
+//                                         ^ type

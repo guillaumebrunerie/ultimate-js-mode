@@ -8,7 +8,7 @@
 (mapped_type_clause
   name: (type_identifier) @type.parameter)
 
-(infer_type (type_identifier) @type.parameter)
+(infer_type . (type_identifier) @type.parameter)
 
 ; Type definitions
 (type_alias_declaration
