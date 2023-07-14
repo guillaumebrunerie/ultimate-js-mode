@@ -39,12 +39,12 @@
   ;; Whether or not we are in jsx/tsx mode
   (setq-local ultimate-js--is-jsx-tsx nil)
   ;; Determine the language based on the file extension
-  (let* ((extension (file-name-extension buffer-file-name)))
-	(cond
-	 ((string= extension "json") (setq mode-name "UltimateJSON"))
-	 ((string= extension "jsx") (setq mode-name "UltimateJSX") (setq ultimate-js--is-jsx-tsx t))
-	 ((string= extension "ts") (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
-	 ((string= extension "tsx") (setq mode-name "UltimateTSX") (setq ultimate-js--lang 'tsx) (setq ultimate-js--is-jsx-tsx t))))
+  (cond
+   ((string-suffix-p ".json" buffer-file-name) (setq mode-name "UltimateJSON"))
+   ((string-suffix-p ".jsx" buffer-file-name) (setq mode-name "UltimateJSX") (setq ultimate-js--is-jsx-tsx t))
+   ((string-suffix-p ".d.ts" buffer-file-name) (setq mode-name "UltimateDTS") (setq ultimate-js--lang 'typescript))
+   ((string-suffix-p ".ts" buffer-file-name) (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
+   ((string-suffix-p ".tsx" buffer-file-name) (setq mode-name "UltimateTSX") (setq ultimate-js--lang 'tsx) (setq ultimate-js--is-jsx-tsx t)))
 
   (setq-local comment-start "// ")
 
