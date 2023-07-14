@@ -84,5 +84,11 @@ const f = <const T extends string>(x: T) => x;
 //         ^ keyword
 //                 ^ keyword
 
+export function f();
+//              ^ function
+
+export function F();
+//              ^ constructor
+
 type S<T> = T extends ((v: infer N extends U) => void) ? N : never;
 //                                         ^ type

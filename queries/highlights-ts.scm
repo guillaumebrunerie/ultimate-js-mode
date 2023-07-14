@@ -1,5 +1,10 @@
 (class_declaration
  name: (_) @constructor)
+(function_signature
+ name: (identifier) @constructor
+ (#match? @constructor "^[A-Z]"))
+(function_signature
+ name: (identifier) @function)
 
 ; Generic type parameters
 (type_parameter
