@@ -44,6 +44,8 @@
    ((string-suffix-p ".jsx" buffer-file-name) (setq mode-name "UltimateJSX") (setq ultimate-js--is-jsx-tsx t))
    ((string-suffix-p ".d.ts" buffer-file-name) (setq mode-name "UltimateDTS") (setq ultimate-js--lang 'typescript))
    ((string-suffix-p ".ts" buffer-file-name) (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
+   ((string-suffix-p ".cts" buffer-file-name) (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
+   ((string-suffix-p ".mts" buffer-file-name) (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
    ((string-suffix-p ".tsx" buffer-file-name) (setq mode-name "UltimateTSX") (setq ultimate-js--lang 'tsx) (setq ultimate-js--is-jsx-tsx t)))
 
   (setq-local comment-start "// ")
