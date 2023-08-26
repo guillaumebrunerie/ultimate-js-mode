@@ -77,6 +77,7 @@
   "infer"
   "module"
   "extends"
+  "satisfies"
 ] @keyword
 
 (type_predicate
