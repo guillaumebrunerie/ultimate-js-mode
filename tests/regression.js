@@ -11,7 +11,6 @@ const f3 = ({x}) => x;
 //           ^ variable
 
 const f4 = ({y: x, z}) => x + z;
-//           ^ property.definition
 //              ^ variable
 //                 ^ variable
 
@@ -28,12 +27,9 @@ const f7 = (...args) => args;
 
 const x = {
   a: 2,
-//^ property.definition
   A: B.C.d,
-//^ property.definition
 //   ^ constructor
 //     ^ constructor
-//       ^ property
   v
 }
 
@@ -48,7 +44,6 @@ class MyClass {
     constructor(){}
 //  ^ keyword
     method(){}
-//  ^ property.definition
 }
 
 // The testing syntax is not good enough to assert interesting stuff about the

@@ -11,12 +11,10 @@
  (#match? @constructor "^[A-Z]"))
 
 ((identifier) @variable.builtin
- (#match? @variable.builtin "^(arguments|module|console|window|document)$")
- (#is-not? local))
+ (#match? @variable.builtin "^(arguments|module|console|window|document)$"))
 
 ((identifier) @function.builtin
- (#eq? @function.builtin "require")
- (#is-not? local))
+ (#eq? @function.builtin "require"))
 
 ; Parameters
 ;-----------
@@ -49,53 +47,61 @@
 
 (function
   name: (identifier) @function)
+
 (function_declaration
   name: (identifier) @function)
+
 (method_definition
  name: (property_identifier) @keyword
  (#match? @keyword "constructor"))
-(method_definition
-  name: (property_identifier) @property.definition)
+
+;; (method_definition
+;;   name: (property_identifier) @property.definition)
 
 ; Function and method calls
 ;--------------------------
 
-(call_expression
-  function: (identifier) @function.call)
+;; (call_expression
+;;   function: (identifier) @function.call)
 
-(call_expression
-  function: (member_expression
-    property: (property_identifier) @function.method.call))
+;; (call_expression
+;;   function: (member_expression
+;;     property: (property_identifier) @function.method.call))
 
 ; Properties definitions
 ;-----------------------
 
-(pair key: (property_identifier) @property.definition)
-(pair_pattern key: (property_identifier) @property.definition)
+;; (pair key: (property_identifier) @property.definition)
+
+;; (pair_pattern key: (property_identifier) @property.definition)
 
 ; Definitions
 ;------------
 
 (array_pattern (identifier) @variable)
+
 (variable_declarator . (identifier) @variable)
 
 ; Properties
 ;-----------
 
-(member_expression
- property: (property_identifier) @property)
+;; (member_expression
+;;  property: (property_identifier) @property)
 
 ; Imports
 ;--------
 
 (import_clause (identifier) @variable)
+
 (import_specifier
-  name: (identifier) @property
   alias: (identifier) @variable)
+
 (import_specifier
   name: (identifier) @variable
   !alias)
+
 (namespace_import (identifier) @variable)
+
 (object_pattern
  [
   (pair_pattern value: (identifier) @variable)
@@ -107,11 +113,11 @@
 ; Variables
 ;----------
 
-([
-    (identifier)
-    (shorthand_property_identifier)
-    (shorthand_property_identifier_pattern)
- ] @variable.call)
+;; ([
+;;     (identifier)
+;;     (shorthand_property_identifier)
+;;     (shorthand_property_identifier_pattern)
+;;  ] @variable.call)
 
 
 ; Tokens
@@ -182,7 +188,7 @@
   "]"
   "{"
   "}"
-]  @punctuation.bracket
+] @punctuation.bracket
 
 [
   "as"
@@ -232,8 +238,10 @@
 ; Literals
 ;---------
 
-(this) @variable.builtin
-(super) @variable.builtin
+[
+ (this)
+ (super)
+] @variable.builtin
 
 [
   (true)
@@ -242,17 +250,28 @@
   (undefined)
 ] @constant.builtin
 
-(comment) @comment
-(hash_bang_line) @comment
+[
+ (comment)
+ (hash_bang_line)
+] @comment
 
-(string) @string
+[
+ (string)
+] @string
 
 (template_substitution
  "${" @punctuation.special
  (_) @embedded
  "}" @punctuation.special)
 
-(template_string) @string
+[
+ (template_string)
+] @string
 
-(regex) @string.special
-(number) @number
+[
+ (regex)
+] @string.special
+
+[
+ (number)
+] @number
