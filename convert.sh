@@ -15,7 +15,7 @@ s/^\([[(]\)/)\n   :language language\n   :feature '\''highlight\n   '\''(\1/g
 s/^./   &/g
 s/#match? \(@[^ ]*\) \(\".*\"\)/:match \2 \1/g
 s/#eq? \(@[^ ]*\) \(\".*\"\)/:match \2 \1/g
-/:match/ s/\^/\\\\\`/g
+/:match/ s/"\^/"\\\\\`/g
 /:match/ s/\$/\\\\'\''/g
 /:match/ s/|/\\\\\|/g
 s/@font-lock-variable-face/@font-lock-variable-name-face/g
