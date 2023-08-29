@@ -420,7 +420,7 @@
    :feature 'highlight
    '([
     (template_string)
-   ] @font-lock-string-face
+   ] @js--fontify-template-string
 
    )
    :language language

@@ -10,6 +10,8 @@ echo "(defun ultimate-js-mode--queries-$1 (language)
 
 sed -e '
 s/@\([a-z.]*\)/@font-lock-\1-face/g
+s/@font-lock-js-face--fontify-template-string/@js--fontify-template-string/g
+s/@font-lock-ts-face--fontify-template-string/@ts--fontify-template-string/g
 s/\(.* \. .*\)/)\n   :language language\n   :feature '\''highlight\n   "\1"\n\n   :language language\n   :feature '\''highlight\n   '\''(_/g
 s/^\([[(]\)/)\n   :language language\n   :feature '\''highlight\n   '\''(\1/g
 s/^./   &/g

@@ -90,7 +90,7 @@
   "const" @keyword)
 
 ; Template literal types
-(template_literal_type) @string
+(template_literal_type) @ts--fontify-template-string
 
 (template_type
  "${" @punctuation.special

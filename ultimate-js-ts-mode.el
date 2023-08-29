@@ -33,6 +33,36 @@
    ((eq lang 'typescript) (ultimate-js-mode--queries-ts lang))
    ((eq lang 'tsx) (ultimate-js-mode--queries-tsx lang))))
 
+
+
+(defun ts--fontify-template-string (node override start end &rest _)
+  "Fontify template string but not substitution inside it.
+NODE is the template_string node.  START and END mark the region
+to be fontified.
+
+OVERRIDE is the override flag described in
+`treesit-font-lock-rules'."
+  ;; You would have thought that the children of the string node spans
+  ;; the whole string.  No, the children of the template_string only
+  ;; includes the starting "`", any template_substitution, and the
+  ;; closing "`".  That's why we have to track BEG instead of just
+  ;; fontifying each child.
+  (let ((child (treesit-node-child node 0))
+        (font-beg (treesit-node-start node)))
+    (while child
+      (let ((font-end (if (equal (treesit-node-type child)
+                                 "template_type")
+                          (treesit-node-start child)
+                        (treesit-node-end child))))
+        (setq font-beg (max start font-beg))
+        (when (< font-beg end)
+          (treesit-fontify-with-override
+           font-beg font-end 'font-lock-string-face override start end)))
+      (setq font-beg (treesit-node-end child)
+            child (treesit-node-next-sibling child)))))
+
+
+
 ;;;###autoload
 (define-derived-mode ultimate-js-ts-mode prog-mode "UltimateJS[TS]"
   "Major mode for editing JS/JSX/TS/TSX/JSON files (Emacs 29 version)."

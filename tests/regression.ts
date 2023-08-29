@@ -92,3 +92,6 @@ export function F();
 
 type S<T> = T extends ((v: infer N extends U) => void) ? N : never;
 //                                         ^ type
+
+type a = `aeb${number}e`;
+const a = `aeb${number}e`;

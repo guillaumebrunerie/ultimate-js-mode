@@ -185,7 +185,7 @@
    )
    :language language
    :feature 'highlight
-   '((template_literal_type) @font-lock-string-face
+   '((template_literal_type) @ts--fontify-template-string
 
    )
    :language language
@@ -609,7 +609,7 @@
    :feature 'highlight
    '([
     (template_string)
-   ] @font-lock-string-face
+   ] @js--fontify-template-string
 
    )
    :language language

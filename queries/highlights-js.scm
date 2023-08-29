@@ -266,7 +266,7 @@
 
 [
  (template_string)
-] @string
+] @js--fontify-template-string
 
 [
  (regex)
