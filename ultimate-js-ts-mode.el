@@ -126,4 +126,63 @@ OVERRIDE is the override flag described in
 
     (treesit-major-mode-setup)))
 
+;;;; Interactive commands and keybindings
+(defun ultimate-js-ts-electric-lt ()
+  "Insert a context-sensitive less-than sign.
+If the less-than sign would start a JSX block, it
+inserts `</>' and places the cursor inside the new tag.
+
+Adapted from RJSX"
+    (interactive)
+    (if (save-excursion
+          (forward-comment most-negative-fixnum)
+          (skip-chars-backward "\n\r")
+          (or (= (point) (point-min))
+              (memq (char-before) (append "=(?:>}&|{," nil))
+              (let ((start (- (point) 6)))
+                (and (>= start (point-min))
+                     (string= (buffer-substring start (point)) "return")))))
+        (progn (self-insert-command 1 ?<)
+               (insert "/>")
+               (backward-char 2))
+      (self-insert-command 1 ?<)))
+
+(defun ultimate-js-ts-expand-self-closing-tag (text)
+  "Expand NODE into a balanced tag.
+Assumes NODE is self-closing `rjsx-node', and that point is at
+the self-closing slash."
+  (delete-char 1)
+  (search-forward ">")
+  (save-excursion
+    (insert "</" text ">")))
+
+(defun ultimate-js-ts--get-self-closing-tag-name ()
+  "Checks whether the point is on the slash of a self-closing tag. If so, return
+the name of the tag, otherwise return nil."
+  (if (and (looking-at-p "/>")
+           (eq (char-before) ?<))
+      ""
+    (let* ((node (treesit-node-at (point)))
+           (parent (and node (treesit-node-parent node))))
+      (when (and node
+                 parent
+                 (string= (treesit-node-type node) "/>")
+                 (string= (treesit-node-type parent) "jsx_self_closing_element"))
+        (treesit-node-text (treesit-node-child parent 1))))))
+
+(defun ultimate-js-ts-electric-gt ()
+  "Insert a context-sensitive greater-than sign.
+If point is in a self-closing JSX tag just before the
+slash, it creates a matching end-tag and places point just inside
+the tags.
+Taken from RJSX"
+  (interactive)
+  (let ((text (ultimate-js-ts--get-self-closing-tag-name)))
+    (if text
+        (ultimate-js-ts-expand-self-closing-tag text)
+      (self-insert-command 1 ?>))))
+
+(define-key ultimate-js-ts-mode-map "<" 'ultimate-js-ts-electric-lt)
+(define-key ultimate-js-ts-mode-map ">" 'ultimate-js-ts-electric-gt)
+
 (provide 'ultimate-js-ts-mode)
