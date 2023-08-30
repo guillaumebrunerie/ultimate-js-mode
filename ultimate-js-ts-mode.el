@@ -15,13 +15,28 @@
 
 (declare-function treesit-parser-create "treesit.c")
 
+(defvar json--treesit-indent-rules
+  `((json
+     ((parent-is "program") parent-bol 0)
+     ((node-is "}") parent-bol 0)
+     ((node-is "]") parent-bol 0)
+     ((and (parent-is "comment") c-ts-common-looking-at-star)
+      c-ts-common-comment-start-after-first-star -1)
+     ((parent-is "comment") prev-adaptive-prefix 0)
+     ((parent-is "array") parent-bol js-indent-level)
+     ((parent-is "object") parent-bol js-indent-level)
+     ((parent-is "pair") parent-bol js-indent-level)
+     (no-node parent-bol 0))))
+
 (defun ultimate-js-ts-mode--indent-rules (lang)
   "Indentation rules"
   (cond
+   ((eq lang 'json) json--treesit-indent-rules)
    ((eq lang 'javascript) js--treesit-indent-rules)
    ((eq lang 'typescript) (typescript-ts-mode--indent-rules lang))
    ((eq lang 'tsx) (typescript-ts-mode--indent-rules lang))))
 
+(load "highlights-json")
 (load "highlights-js")
 (load "highlights-ts")
 (load "highlights-tsx")
@@ -29,6 +44,7 @@
 (defun ultimate-js-ts-mode--font-lock-settings (lang)
   "Highlighting rules"
   (cond
+   ((eq lang 'json) (ultimate-js-mode--queries-json lang))
    ((eq lang 'javascript) (ultimate-js-mode--queries-js lang))
    ((eq lang 'typescript) (ultimate-js-mode--queries-ts lang))
    ((eq lang 'tsx) (ultimate-js-mode--queries-tsx lang))))
@@ -101,7 +117,7 @@ OVERRIDE is the override flag described in
   (setq-local ultimate-js--lang 'javascript)
   ;; Determine the language based on the file extension
   (cond
-   ((string-suffix-p ".json" buffer-file-name) (setq mode-name "UltimateJSON[TS]"))
+   ((string-suffix-p ".json" buffer-file-name) (setq mode-name "UltimateJSON[TS]") (setq ultimate-js--lang 'json))
    ((string-suffix-p ".jsx" buffer-file-name) (setq mode-name "UltimateJSX[TS]"))
    ((string-suffix-p ".d.ts" buffer-file-name) (setq mode-name "UltimateDTS[TS]") (setq ultimate-js--lang 'typescript))
    ((string-suffix-p ".ts" buffer-file-name) (setq mode-name "UltimateTS[TS]") (setq ultimate-js--lang 'typescript))
