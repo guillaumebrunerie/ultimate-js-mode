@@ -19,6 +19,10 @@
 
    :language language
    :feature 'highlight
+   '((pair key: (string) @font-lock-property-name-face))
+
+   :language language
+   :feature 'highlight
    '((string) @font-lock-string-face)
 
    :language language
@@ -28,4 +32,4 @@
    :language language
    :feature 'highlight
    :override t
-   '((ERROR) @error)))
+   '((ERROR) @font-lock-warning-face)))
