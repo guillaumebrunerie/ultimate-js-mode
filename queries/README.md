@@ -1,3 +1,0 @@
-- highlights-js.scm is the base file, used in all modes
-- highlights-jsx.scm is used in Javascript (which includes JSX) and TSX
-- highlights-ts.scm is used in Typescript and TSX

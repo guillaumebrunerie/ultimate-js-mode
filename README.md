@@ -1,58 +1,39 @@
-ultimate-js-mode: A major mode for JS/JSX/TS/TSX
-================================================
+ultimate-js-mode: A major mode for JS/JSX/TS/TSX/JSON on Emacs 29
+=================================================================
 
 Introduction
 ------------
 
-This package is a major mode for editing JS/JSX/TS/TSX files. After having used
-`js2-mode`, `rjsx-mode` and `typescript-mode`, I consider it the final stop in
-my search for an ultimate major mode that supports all of those variants of
+This package is a major mode for editing JS/JSX/TS/TSX/JSON files. After having
+used `js2-mode`, `rjsx-mode` and `typescript-mode`, I consider it the final stop
+in my search for an ultimate major mode that supports all of those variants of
 Javascript simultaneously.
+
+It now only supports Emacs 29, check some earlier commit if you need Emacs 28
+support.
 
 I suggest you combine it with LSP mode (or maybe eglot) for a more complete
 developer experience. You may also be interested in my `init.el` and my theme,
 which you can find at `github.com/guillaumebrunerie/dotfiles`.
 
 It provides:
-- syntax highlighting, based on tree-sitter with customized highlighting queries
-  as there are quite a few imperfections in the existing ones
-- indentation, *not* based on tree-sitter (see below) but on js-mode, tweaked to
-  work in a satisfactory way for Typescript/TSX as well
+- customized tree-sitter highlighting queries, as I don’t really like the
+  existing ones
 - electricity for JSX/TSX tags (inspired by RJSX-mode)
-- syntax-aware electricity for parentheses: when placing an opening parenthesis,
-  it places the closing parenthesis at the end of the subtree starting at point.
-  Maybe should be split up into a separate package as it is not particularly
-  specific to Javascript/Typescript.
-
-You will need to compile the grammars yourself for now (see Installation section
-below), but I am using it every day at work and at home, and I am very happy
-with it.
-
-
-Main contributions
-------------------
-
-- Typescript/TSX indentation based on js-mode and with the help of tree-sitter.
-- Improved syntax highlighting compared to upstream and `tree-sitter-langs`
 
 
 Installation
 ------------
 
-- Make sure you have at least Emacs version 27 (indentation for JSX uses the
-  built-in `js-mode` which added support for JSX in Emacs 27).
+- Make sure you have at least Emacs version 29 (this package uses builtin
+  support for tree-sitter).
 - Install `ultimate-js-mode` and enable it for files with extension `[jt]sx?|json`.
-  The files in the `libs` and `queries` directory need to be next to the loaded
-  mode file.
   For instance using `straight.el` and `use-package`:
   ```
   (use-package ultimate-js-mode
-    :straight (:host github :repo "guillaumebrunerie/ultimate-js-mode" :files (:defaults "libs" "queries"))
+    :straight (:host github :repo "guillaumebrunerie/ultimate-js-mode")
     :mode ("\\.[jt]sx?\\'" "\\.json\\'")
   ```
-- From the `ultimate-js-mode` directory, compile the tree-sitter grammars into
-  the `libs` directory using the `compile.sh` script (works on Linux and Mac, no
-  idea about Windows).
 
 
 Syntax highlighting
@@ -87,19 +68,5 @@ This means there should be 3×2 different colors for identifier.
 In my current theme, types are green (brighter for binders), special values are
 blue (brighter for binders), and values are yellow/white for binders/uses.
 
-
-Indentation
------------
-
-I hoped for a while that I would be able to use `tree-sitter` to determine
-perfect indentation, but I realized after some time that it was significantly
-harder than I expected, and even hopeless in some situations. The issue is that
-indentation should work even in incomplete files (when you are in the process of
-writing code) but `tree-sitter` (understandably) often gives bogus trees if the
-file is not syntactically correct. It is acceptable for syntax highlighting, but
-not for indentation unless you add a bunch of special cases. Indenting empty
-lines is also very tricky with `tree-sitter` as there is no node to refer to.
-
-Instead I decided to use indentation from the built-in js-mode, which does an
-amazing job at indenting JS/JSX files, and adapted it for TS/TSX. It took
-surprisingly little code (5 lines) and works very well.
+I do not use the `feature` feature of Emacs 29's implementation of tree-sitter,
+so I just use a feature called `highlighting` for everything.
