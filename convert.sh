@@ -1,8 +1,8 @@
 #!/bin/zsh
 
-echo "(defun ultimate-js-mode--queries-$1 (language)
+echo "(defun ultimate-js-mode--partial-queries-$1 (language)
   \"Custom highlighting queries\"
-  (treesit-font-lock-rules
+  (list
    :language language
    :feature 'highlight
    '(_

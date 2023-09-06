@@ -39,15 +39,34 @@
 (load "highlights-json")
 (load "highlights-js")
 (load "highlights-ts")
-(load "highlights-tsx")
+(load "highlights-jsx")
+
+(defvar ultimate-js-mode--queries-js
+  (apply #'treesit-font-lock-rules
+         (append
+          (ultimate-js-mode--partial-queries-jsx 'javascript)
+          (ultimate-js-mode--partial-queries-js 'javascript))))
+
+(defvar ultimate-js-mode--queries-ts
+  (apply #'treesit-font-lock-rules
+         (append
+          (ultimate-js-mode--partial-queries-ts 'typescript)
+          (ultimate-js-mode--partial-queries-js 'typescript))))
+
+(defvar ultimate-js-mode--queries-tsx
+  (apply #'treesit-font-lock-rules
+         (append
+          (ultimate-js-mode--partial-queries-ts 'tsx)
+          (ultimate-js-mode--partial-queries-jsx 'tsx)
+          (ultimate-js-mode--partial-queries-js 'tsx))))
 
 (defun ultimate-js-ts-mode--font-lock-settings (lang)
   "Highlighting rules"
   (cond
-   ((eq lang 'json) (ultimate-js-mode--queries-json lang))
-   ((eq lang 'javascript) (ultimate-js-mode--queries-js lang))
-   ((eq lang 'typescript) (ultimate-js-mode--queries-ts lang))
-   ((eq lang 'tsx) (ultimate-js-mode--queries-tsx lang))))
+   ((eq lang 'json) (ultimate-js-mode--queries-json 'json))
+   ((eq lang 'javascript) ultimate-js-mode--queries-js)
+   ((eq lang 'typescript) ultimate-js-mode--queries-ts)
+   ((eq lang 'tsx) ultimate-js-mode--queries-tsx)))
 
 
 

@@ -1,5 +1,6 @@
 #!/bin/zsh
 
-./convert.sh js < queries/highlights-jsx.scm < queries/highlights-js.scm > highlights-js.el
-./convert.sh ts < queries/highlights-ts.scm < queries/highlights-js.scm > highlights-ts.el
-./convert.sh tsx < queries/highlights-ts.scm < queries/highlights-jsx.scm < queries/highlights-js.scm > highlights-tsx.el
+for lang in js jsx ts
+do
+	./convert.sh $lang < queries/highlights-$lang.scm > highlights-$lang.el
+done
