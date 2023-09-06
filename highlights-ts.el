@@ -87,7 +87,7 @@
    :feature 'highlight
    '((method_signature
     name: (property_identifier) @font-lock-keyword-face
-    (:match "constructor" @font-lock-keyword-face))
+    (:match "\\`constructor\\'" @font-lock-keyword-face))
 
    )
    :language language

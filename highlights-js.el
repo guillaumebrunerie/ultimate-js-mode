@@ -12,7 +12,7 @@
    :language language
    :feature 'highlight
    '(((identifier) @font-lock-number-face
-    (:match "\\`(Infinity\\|NaN)\\'" @font-lock-number-face))
+    (:match "\\`\\(Infinity\\|NaN\\)\\'" @font-lock-number-face))
 
    )
    :language language
@@ -30,13 +30,7 @@
    :language language
    :feature 'highlight
    '(((identifier) @font-lock-builtin-face
-    (:match "\\`(arguments\\|module\\|console\\|window\\|document)\\'" @font-lock-builtin-face))
-
-   )
-   :language language
-   :feature 'highlight
-   '(((identifier) @font-lock-builtin-face
-    (:match "require" @font-lock-builtin-face))
+    (:match "\\`\\(arguments\\|module\\|console\\|window\\|document\\|require\\)\\'" @font-lock-builtin-face))
 
    ; Parameters
    ;-----------
@@ -105,7 +99,7 @@
    :feature 'highlight
    '((method_definition
     name: (property_identifier) @font-lock-keyword-face
-    (:match "constructor" @font-lock-keyword-face))
+    (:match "\\`constructor\\'" @font-lock-keyword-face))
 
    ;; (method_definition
    ;;   name: (property_identifier) @font-lock-property.definition-face)
