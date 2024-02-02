@@ -85,12 +85,6 @@
    )
    :language language
    :feature 'highlight
-   '((function
-     name: (identifier) @font-lock-variable-name-face)
-
-   )
-   :language language
-   :feature 'highlight
    '((function_declaration
      name: (identifier) @font-lock-variable-name-face)
 
