@@ -1,0 +1,2 @@
+- clean up remnants of the script generation
+- clean up highlighting of identifiers, including introducing light blue

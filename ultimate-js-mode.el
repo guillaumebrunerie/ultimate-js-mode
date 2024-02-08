@@ -15,6 +15,38 @@
 
 (declare-function treesit-parser-create "treesit.c")
 
+(defvar ultimate-js--first-line
+  (lambda (node parent bol &rest _)
+    (let ((current-line (line-number-at-pos bol))
+          (previous-line (line-number-at-pos (treesit-node-start parent))))
+      (= current-line (1+ previous-line)))))
+
+(defvar ultimate-js--ends-with-opening-brace
+  (lambda (_n _p bol &rest _)
+    (save-excursion
+      (goto-char bol)
+      (forward-line -1)
+      (end-of-line)
+      (backward-char 1)
+      (looking-at "{"))))
+
+(defvar ultimate-js--ends-with-closing-brace
+  (lambda (_n _p bol &rest _)
+    (save-excursion
+      (goto-char bol)
+      (end-of-line)
+      (backward-char 1)
+      (and (looking-at "}") (not (looking-back "{"))))))
+
+;; Custom indentation rules for styled components
+(defun ultimate-js--custom-ts-indent-rules (lang)
+  `((,lang
+     ((and (parent-is "string_fragment") ,ultimate-js--first-line) prev-line typescript-ts-mode-indent-offset) ; Indent first line
+     ((and (parent-is "string_fragment") ,ultimate-js--ends-with-opening-brace) prev-line typescript-ts-mode-indent-offset) ; Indent after opening brace
+     ((and (parent-is "string_fragment") ,ultimate-js--ends-with-closing-brace) prev-line ,(- 4)) ; Deindent closing brace
+     ((parent-is "string_fragment") prev-line 0) ; Keep indentation for the rest
+     ,@(cdar (typescript-ts-mode--indent-rules lang)))))
+
 (defvar json--treesit-indent-rules
   `((json
      ((parent-is "program") parent-bol 0)
@@ -33,8 +65,8 @@
   (cond
    ((eq lang 'json) json--treesit-indent-rules)
    ((eq lang 'javascript) js--treesit-indent-rules)
-   ((eq lang 'typescript) (typescript-ts-mode--indent-rules lang))
-   ((eq lang 'tsx) (typescript-ts-mode--indent-rules lang))))
+   ((eq lang 'typescript) (ultimate-js--custom-ts-indent-rules lang))
+   ((eq lang 'tsx) (ultimate-js--custom-ts-indent-rules lang))))
 
 (load "highlights-json")
 (load "highlights-js")
@@ -111,7 +143,7 @@ OVERRIDE is the override flag described in
   (setq-local electric-indent-chars
               (append "{}():;,<>/" electric-indent-chars))
   (setq-local electric-layout-rules
-          '((?\; . after) (?\{ . after) (?\} . before)))
+              '((?\; . after) (?\{ . after) (?\} . before)))
 
   ;; Navigation
   (setq-local treesit-defun-type-regexp
@@ -168,19 +200,19 @@ If the less-than sign would start a JSX block, it
 inserts `</>' and places the cursor inside the new tag.
 
 Adapted from RJSX"
-    (interactive)
-    (if (save-excursion
-          (forward-comment most-negative-fixnum)
-          (skip-chars-backward "\n\r")
-          (or (= (point) (point-min))
-              (memq (char-before) (append "=(?:>}&|{," nil))
-              (let ((start (- (point) 6)))
-                (and (>= start (point-min))
-                     (string= (buffer-substring start (point)) "return")))))
-        (progn (self-insert-command 1 ?<)
-               (insert "/>")
-               (backward-char 2))
-      (self-insert-command 1 ?<)))
+  (interactive)
+  (if (save-excursion
+        (forward-comment most-negative-fixnum)
+        (skip-chars-backward "\n\r")
+        (or (= (point) (point-min))
+            (memq (char-before) (append "=(?:>}&|{," nil))
+            (let ((start (- (point) 6)))
+              (and (>= start (point-min))
+                   (string= (buffer-substring start (point)) "return")))))
+      (progn (self-insert-command 1 ?<)
+             (insert "/>")
+             (backward-char 2))
+    (self-insert-command 1 ?<)))
 
 (defun ultimate-js-expand-self-closing-tag (text)
   "Expand NODE into a balanced tag.
