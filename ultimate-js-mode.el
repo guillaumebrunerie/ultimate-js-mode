@@ -45,7 +45,8 @@
      ((and (parent-is "string_fragment") ,ultimate-js--ends-with-opening-brace) prev-line typescript-ts-mode-indent-offset) ; Indent after opening brace
      ((and (parent-is "string_fragment") ,ultimate-js--ends-with-closing-brace) prev-line ,(- 4)) ; Deindent closing brace
      ((parent-is "string_fragment") prev-line 0) ; Keep indentation for the rest
-     ,@(cdar (typescript-ts-mode--indent-rules lang)))))
+     ,@(cdar (typescript-ts-mode--indent-rules lang))
+     ((parent-is "switch_body") parent-bol typescript-ts-mode-indent-offset))))
 
 (defvar json--treesit-indent-rules
   `((json
