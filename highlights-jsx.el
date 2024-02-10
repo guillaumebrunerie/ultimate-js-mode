@@ -3,47 +3,40 @@
   (list
    :language language
    :feature 'highlight
-   '(_
+   '((jsx_opening_element (identifier) @font-lock-tag-face (:match "\\`[a-z][^.]*\\'" @font-lock-tag-face)))
 
-   )
    :language language
    :feature 'highlight
-   '((jsx_opening_element (identifier) @font-lock-tag-face (:match "\\`[a-z][^.]*\\'" @font-lock-tag-face))
-   )
-   :language language
-   :feature 'highlight
-   '((jsx_closing_element (identifier) @font-lock-tag-face (:match "\\`[a-z][^.]*\\'" @font-lock-tag-face))
-   )
-   :language language
-   :feature 'highlight
-   '((jsx_self_closing_element (identifier) @font-lock-tag-face (:match "\\`[a-z][^.]*\\'" @font-lock-tag-face))
-   )
-   :language language
-   :feature 'highlight
-   '((jsx_opening_element (identifier) @font-lock-function-name-face)
-   )
-   :language language
-   :feature 'highlight
-   '((jsx_closing_element (identifier) @font-lock-function-name-face)
-   )
-   :language language
-   :feature 'highlight
-   '((jsx_self_closing_element (identifier) @font-lock-function-name-face)
+   '((jsx_closing_element (identifier) @font-lock-tag-face (:match "\\`[a-z][^.]*\\'" @font-lock-tag-face)))
 
-   )
    :language language
    :feature 'highlight
-   '((jsx_attribute (property_identifier) @font-lock-attribute-face)
-   )
+   '((jsx_self_closing_element (identifier) @font-lock-tag-face (:match "\\`[a-z][^.]*\\'" @font-lock-tag-face)))
+
    :language language
    :feature 'highlight
-   '((jsx_opening_element (["<" ">"]) @font-lock-bracket-face)
-   )
+   '((jsx_opening_element (identifier) @font-lock-function-name-face))
+
    :language language
    :feature 'highlight
-   '((jsx_closing_element (["</" ">"]) @font-lock-bracket-face)
-   )
+   '((jsx_closing_element (identifier) @font-lock-function-name-face))
+
    :language language
    :feature 'highlight
-   '((jsx_self_closing_element (["<" "/>"]) @font-lock-bracket-face)
-)))
+   '((jsx_self_closing_element (identifier) @font-lock-function-name-face))
+
+   :language language
+   :feature 'highlight
+   '((jsx_attribute (property_identifier) @font-lock-attribute-face))
+
+   :language language
+   :feature 'highlight
+   '((jsx_opening_element (["<" ">"]) @font-lock-bracket-face))
+
+   :language language
+   :feature 'highlight
+   '((jsx_closing_element (["</" ">"]) @font-lock-bracket-face))
+
+   :language language
+   :feature 'highlight
+   '((jsx_self_closing_element (["<" "/>"]) @font-lock-bracket-face))))

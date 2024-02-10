@@ -15,39 +15,58 @@
 
 (declare-function treesit-parser-create "treesit.c")
 
-(defvar ultimate-js--first-line
+
+;;;;;;;;;;;;;;;;;
+;; Indentation ;;
+;;;;;;;;;;;;;;;;;
+
+;; Return the parent or grand parent if it is a template string
+(defvar ultimate-js--template-string
+  (lambda (node parent bol &rest _)
+    (cond ((string= (treesit-node-type parent) "template_string") parent)
+          ((string= (treesit-node-type (treesit-node-parent parent)) "template_string") (treesit-node-parent parent)))))
+
+;; Determine when to indent inside a template string (first line and after an
+;; opening brace)
+(defvar ultimate-js--should-indent
   (lambda (node parent bol &rest _)
     (let ((current-line (line-number-at-pos bol))
-          (previous-line (line-number-at-pos (treesit-node-start parent))))
-      (= current-line (1+ previous-line)))))
+          (previous-line (line-number-at-pos (treesit-node-start (funcall ultimate-js--template-string node parent bol)))))
+      (or
+       (= current-line (1+ previous-line))
+       (save-excursion
+         (goto-char bol)
+         (forward-line -1)
+         (end-of-line)
+         (backward-char 1)
+         (looking-at "{"))))))
 
-(defvar ultimate-js--ends-with-opening-brace
+;; Determine when to deindent inside a template string (closing brace or the end
+;; of the template string)
+(defvar ultimate-js--should-deindent
   (lambda (_n _p bol &rest _)
     (save-excursion
       (goto-char bol)
-      (forward-line -1)
-      (end-of-line)
-      (backward-char 1)
-      (looking-at "{"))))
+      (beginning-of-line)
+      (looking-at "[ \t]*\\(}$\\|`\\)"))))
 
-(defvar ultimate-js--ends-with-closing-brace
-  (lambda (_n _p bol &rest _)
-    (save-excursion
-      (goto-char bol)
-      (end-of-line)
-      (backward-char 1)
-      (and (looking-at "}") (not (looking-back "{"))))))
-
-;; Custom indentation rules for styled components
+;; Fix indentation rules, and add custom ones for styled components
 (defun ultimate-js--custom-ts-indent-rules (lang)
   `((,lang
-     ((and (parent-is "string_fragment") ,ultimate-js--first-line) prev-line typescript-ts-mode-indent-offset) ; Indent first line
-     ((and (parent-is "string_fragment") ,ultimate-js--ends-with-opening-brace) prev-line typescript-ts-mode-indent-offset) ; Indent after opening brace
-     ((and (parent-is "string_fragment") ,ultimate-js--ends-with-closing-brace) prev-line ,(- 4)) ; Deindent closing brace
-     ((parent-is "string_fragment") prev-line 0) ; Keep indentation for the rest
+     ;; Needs to be repeated here (for template substitutions)
+     ((node-is "}") parent-bol 0)
+     ;; Rules for template strings, with support for styled components
+     ((and ,ultimate-js--template-string ,ultimate-js--should-indent) prev-line typescript-ts-mode-indent-offset)
+     ((and ,ultimate-js--template-string ,ultimate-js--should-deindent) prev-line ,(- 4))
+     (,ultimate-js--template-string prev-line 0)
+     ;; Fix text inside JSX
+     ((parent-is "jsx_text") grand-parent typescript-ts-mode-indent-offset)
+     ;; Original rules
      ,@(cdar (typescript-ts-mode--indent-rules lang))
+     ;; Fix switch/case rules
      ((parent-is "switch_body") parent-bol typescript-ts-mode-indent-offset))))
 
+;; Indentation rules for JSON
 (defvar json--treesit-indent-rules
   `((json
      ((parent-is "program") parent-bol 0)
@@ -68,6 +87,11 @@
    ((eq lang 'javascript) js--treesit-indent-rules)
    ((eq lang 'typescript) (ultimate-js--custom-ts-indent-rules lang))
    ((eq lang 'tsx) (ultimate-js--custom-ts-indent-rules lang))))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Syntax highlighting ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (load "highlights-json")
 (load "highlights-js")
@@ -102,34 +126,21 @@
    ((eq lang 'tsx) ultimate-js-mode--queries-tsx)))
 
 
+;;;;;;;;;;;;;;
+;; Comments ;;
+;;;;;;;;;;;;;;
 
-(defun ts--fontify-template-string (node override start end &rest _)
-  "Fontify template string but not substitution inside it.
-NODE is the template_string node.  START and END mark the region
-to be fontified.
-
-OVERRIDE is the override flag described in
-`treesit-font-lock-rules'."
-  ;; You would have thought that the children of the string node spans
-  ;; the whole string.  No, the children of the template_string only
-  ;; includes the starting "`", any template_substitution, and the
-  ;; closing "`".  That's why we have to track BEG instead of just
-  ;; fontifying each child.
-  (let ((child (treesit-node-child node 0))
-        (font-beg (treesit-node-start node)))
-    (while child
-      (let ((font-end (if (equal (treesit-node-type child)
-                                 "template_type")
-                          (treesit-node-start child)
-                        (treesit-node-end child))))
-        (setq font-beg (max start font-beg))
-        (when (< font-beg end)
-          (treesit-fontify-with-override
-           font-beg font-end 'font-lock-string-face override start end)))
-      (setq font-beg (treesit-node-end child)
-            child (treesit-node-next-sibling child)))))
+(defun ultimate-js--comment-region (beg end &optional arg)
+  (if (treesit-parent-until (treesit-node-at beg) (lambda (node) (equal (treesit-node-type node) "jsx_element")))
+      (let ((comment-start "{/* ")
+            (comment-end " */}"))
+        (comment-region-default beg end arg))
+    (comment-region-default beg end arg)))
 
 
+;;;;;;;;;;;;;;;;
+;; Major mode ;;
+;;;;;;;;;;;;;;;;
 
 ;;;###autoload
 (define-derived-mode ultimate-js-mode prog-mode "UltimateJS"
@@ -139,6 +150,7 @@ OVERRIDE is the override flag described in
 
   ;; Comments (TODO: better handling of comments in JSX)
   (c-ts-common-comment-setup)
+  (setq-local comment-region-function #'ultimate-js--comment-region)
 
   ;; Electricity
   (setq-local electric-indent-chars
