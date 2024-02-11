@@ -131,7 +131,7 @@
 ;;;;;;;;;;;;;;
 
 (defun ultimate-js--comment-region (beg end &optional arg)
-  (if (treesit-parent-until (treesit-node-at beg) (lambda (node) (equal (treesit-node-type node) "jsx_element")))
+  (if (treesit-parent-until (treesit-node-at beg) (lambda (node) (string= (treesit-node-type node) "jsx_element")))
       (let ((comment-start "{/* ")
             (comment-end " */}"))
         (comment-region-default beg end arg))
@@ -148,7 +148,7 @@
   :group 'ultimate-js
   :syntax-table typescript-ts-mode--syntax-table
 
-  ;; Comments (TODO: better handling of comments in JSX)
+  ;; Comments
   (c-ts-common-comment-setup)
   (setq-local comment-region-function #'ultimate-js--comment-region)
 
@@ -157,24 +157,6 @@
               (append "{}():;,<>/" electric-indent-chars))
   (setq-local electric-layout-rules
               '((?\; . after) (?\{ . after) (?\} . before)))
-
-  ;; Navigation
-  (setq-local treesit-defun-type-regexp
-              (regexp-opt '("class_declaration"
-                            "method_definition"
-                            "function_declaration"
-                            "lexical_declaration")))
-  (setq-local treesit-defun-name-function #'js--treesit-defun-name)
-
-  ;; Imenu
-  (setq-local treesit-simple-imenu-settings
-              `(("Function" "\\`function_declaration\\'" nil nil)
-                ("Variable" "\\`lexical_declaration\\'"
-                 js--treesit-valid-imenu-entry nil)
-                ("Class" ,(rx bos (or "class_declaration"
-                                      "method_definition")
-                              eos)
-                 nil nil)))
 
   ;; The name of the tree-sitter grammar, `javascript` for both .js and .jsx,
   ;; `typescript` for .ts, and `tsx` for .tsx
