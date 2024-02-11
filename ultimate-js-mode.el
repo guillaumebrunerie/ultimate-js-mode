@@ -57,7 +57,7 @@
      ((node-is "}") parent-bol 0)
      ;; Rules for template strings, with support for styled components
      ((and ,ultimate-js--template-string ,ultimate-js--should-indent) prev-line typescript-ts-mode-indent-offset)
-     ((and ,ultimate-js--template-string ,ultimate-js--should-deindent) prev-line ,(- 4))
+     ((and ,ultimate-js--template-string ,ultimate-js--should-deindent) prev-line ,(- 4)) ;; Not sure how to deindent with a variable
      (,ultimate-js--template-string prev-line 0)
      ;; Fix text inside JSX
      ((parent-is "jsx_text") grand-parent typescript-ts-mode-indent-offset)
@@ -144,7 +144,7 @@
 
 ;;;###autoload
 (define-derived-mode ultimate-js-mode prog-mode "UltimateJS"
-  "Major mode for editing JS/JSX/TS/TSX/JSON files (Emacs 29 version)."
+  "Major mode for editing JS/JSX/TS/TSX/JSON files."
   :group 'ultimate-js
   :syntax-table typescript-ts-mode--syntax-table
 

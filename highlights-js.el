@@ -303,5 +303,4 @@
    :feature 'highlight
    '([
       (number)
-      ] @font-lock-number-face
-        )))
+      ] @font-lock-number-face)))
