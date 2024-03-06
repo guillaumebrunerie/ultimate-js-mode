@@ -65,6 +65,8 @@
      ((parent-is "interface_body") parent-bol typescript-ts-mode-indent-offset)
      ;; Fix switch/case rules
      ((parent-is "switch_body") parent-bol typescript-ts-mode-indent-offset)
+     ;; Fix exports
+     ((parent-is "export_clause") parent-bol typescript-ts-mode-indent-offset)
      ;; Original rules
      ,@(cdar (typescript-ts-mode--indent-rules lang))
      ;; Fix switch/case rules
