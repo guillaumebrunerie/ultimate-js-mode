@@ -132,18 +132,6 @@
    ((eq lang 'tsx) ultimate-js-mode--queries-tsx)))
 
 
-;;;;;;;;;;;;;;
-;; Comments ;;
-;;;;;;;;;;;;;;
-
-(defun ultimate-js--comment-region (beg end &optional arg)
-  (if (treesit-parent-until (treesit-node-at beg) (lambda (node) (string= (treesit-node-type node) "jsx_element")))
-      (let ((comment-start "{/* ")
-            (comment-end " */}"))
-        (comment-region-default beg end arg))
-    (comment-region-default beg end arg)))
-
-
 ;;;;;;;;;;;;;;;;
 ;; Major mode ;;
 ;;;;;;;;;;;;;;;;
@@ -156,7 +144,6 @@
 
   ;; Comments
   (c-ts-common-comment-setup)
-  (setq-local comment-region-function #'ultimate-js--comment-region)
 
   ;; Electricity
   (setq-local electric-indent-chars
@@ -193,6 +180,40 @@
                 '((highlight)))
 
     (treesit-major-mode-setup)))
+
+
+;;;;;;;;;;;;;;
+;; Comments ;;
+;;;;;;;;;;;;;;
+
+;; JSX needs to be commented out differently, with {/* */}, so we try to detect
+;; which kind of comment is needed using tree-sitter.
+;;
+;; Go up the tree from the beginning position until we hit
+;; - a jsx_expression: we are inside (nested) JavaScript, use normal commenting
+;; - a jsx_self_closing_element/jsx_opening_element: we are inside attributes in a JSX tag, use normal commenting as well
+;; - a jsx_element: we are inside JSX, use special commenting!
+;; - nothing: we are inside JavaScript, use normal commenting
+(defun ultimate-js--comment-dwim (arg)
+  (interactive "*P")
+  (let* ((beg (region-beginning))
+         (stops '("jsx_element" "jsx_expression" "jsx_self_closing_element" "jsx_opening_element"))
+         (parent (treesit-parent-until
+                  (treesit-node-at beg)
+                  (lambda (node) (seq-contains-p stops (treesit-node-type node) #'string=)))))
+    (if (and parent (string= (treesit-node-type parent) "jsx_element"))
+        (let ((comment-start "{/*")
+              (comment-end "*/}")
+              (comment-end-skip " *\\*/}")
+              (comment-start-skip "{/\\* *"))
+          (comment-dwim arg))
+      (comment-dwim arg))))
+(define-key ultimate-js-mode-map (kbd "M-;") #'ultimate-js--comment-dwim)
+
+
+;;;;;;;;;;;;;;;;;;;
+;; Electric tags ;;
+;;;;;;;;;;;;;;;;;;;
 
 ;;;; Interactive commands and keybindings
 (defun ultimate-js-electric-lt ()
@@ -250,7 +271,16 @@ Taken from RJSX"
         (ultimate-js-expand-self-closing-tag text)
       (self-insert-command 1 ?>))))
 
+(defun ultimate-js-electric-delete (arg &optional killp)
+  (interactive "*p\nP")
+  (if (and (looking-at "/>") (looking-back "<"))
+      (progn
+        (delete-char 2)
+        (backward-delete-char arg killp))
+    (backward-delete-char arg killp)))
+
 (define-key ultimate-js-mode-map "<" 'ultimate-js-electric-lt)
 (define-key ultimate-js-mode-map ">" 'ultimate-js-electric-gt)
+(define-key ultimate-js-mode-map "\177" #'ultimate-js-electric-delete)
 
 (provide 'ultimate-js-mode)
