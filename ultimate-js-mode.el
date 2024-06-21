@@ -159,6 +159,8 @@
    ((string-suffix-p ".json" buffer-file-name) (setq mode-name "UltimateJSON") (setq ultimate-js--lang 'json))
    ((string-suffix-p ".jsx" buffer-file-name) (setq mode-name "UltimateJSX"))
    ((string-suffix-p ".d.ts" buffer-file-name) (setq mode-name "UltimateDTS") (setq ultimate-js--lang 'typescript))
+   ((string-suffix-p ".d.cts" buffer-file-name) (setq mode-name "UltimateDTS") (setq ultimate-js--lang 'typescript))
+   ((string-suffix-p ".d.mts" buffer-file-name) (setq mode-name "UltimateDTS") (setq ultimate-js--lang 'typescript))
    ((string-suffix-p ".ts" buffer-file-name) (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
    ((string-suffix-p ".cts" buffer-file-name) (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
    ((string-suffix-p ".mts" buffer-file-name) (setq mode-name "UltimateTS") (setq ultimate-js--lang 'typescript))
