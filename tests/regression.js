@@ -47,7 +47,7 @@ class MyClass {
 }
 
 // The testing syntax is not good enough to assert interesting stuff about the
-// code below, check by hand (the inner template string is not currently working)
+// code below, check by hand
 const a = "x" + `before${b => b + "a" + `inner${b}`}after`;
 
 import * as styled from "styled";
@@ -76,3 +76,8 @@ function b() {};
 
 const [A = 3] = [];
 //     ^ constructor
+
+const y = /abc/ / 2;
+//        ^ regexp
+//         ^ regexp
+//              ^ operator

@@ -141,6 +141,12 @@
    :language language
    :feature 'highlight
    '([
+      (regex)
+      ] @font-lock-regexp-face)
+
+   :language language
+   :feature 'highlight
+   '([
       "-"
       "--"
       "-="
@@ -292,12 +298,6 @@
       (string_fragment)
       "`"
       ] @font-lock-string-face)
-
-   :language language
-   :feature 'highlight
-   '([
-      (regex)
-      ] @font-lock-regexp-face)
 
    :language language
    :feature 'highlight
