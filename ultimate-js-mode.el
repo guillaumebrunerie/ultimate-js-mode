@@ -202,7 +202,7 @@
          (stops '("jsx_element" "jsx_expression" "jsx_self_closing_element" "jsx_opening_element"))
          (parent (treesit-parent-until
                   (treesit-node-at beg)
-                  (lambda (node) (seq-contains-p stops (treesit-node-type node) #'string=)))))
+                  (lambda (node) (and (seq-contains-p stops (treesit-node-type node) #'string=) (< (treesit-node-start node) beg))))))
     (if (and parent (string= (treesit-node-type parent) "jsx_element"))
         (let ((comment-start "{/*")
               (comment-end "*/}")
