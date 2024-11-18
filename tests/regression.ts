@@ -95,3 +95,9 @@ type S<T> = T extends ((v: infer N extends U) => void) ? N : never;
 
 type a = `aeb${number}e`;
 const a = `aeb${number}e`;
+
+// Delimiters
+const a = f<number>(1 < 2)
+type T = Foo<Bar<Baz>>;
+const t = Foo(Bar(Baz));
+const x = a < b && b > c;

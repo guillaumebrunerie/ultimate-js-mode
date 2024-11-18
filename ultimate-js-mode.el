@@ -131,6 +131,12 @@
    ((eq lang 'typescript) ultimate-js-mode--queries-ts)
    ((eq lang 'tsx) ultimate-js-mode--queries-tsx)))
 
+(defvar ultimate-js-mode--syntax-table
+  (let ((table (make-syntax-table typescript-ts-mode--syntax-table)))
+    (modify-syntax-entry ?<  "("     table)
+    (modify-syntax-entry ?>  ")"     table)
+    table)
+  "Syntax table for `ultimate-ts-mode'.")
 
 ;;;;;;;;;;;;;;;;
 ;; Major mode ;;
@@ -140,7 +146,7 @@
 (define-derived-mode ultimate-js-mode prog-mode "UltimateJS"
   "Major mode for editing JS/JSX/TS/TSX/JSON files."
   :group 'ultimate-js
-  :syntax-table typescript-ts-mode--syntax-table
+  :syntax-table ultimate-js-mode--syntax-table
 
   ;; Comments
   (c-ts-common-comment-setup)
@@ -284,5 +290,45 @@ Taken from RJSX"
 (define-key ultimate-js-mode-map "<" 'ultimate-js-electric-lt)
 (define-key ultimate-js-mode-map ">" 'ultimate-js-electric-gt)
 (define-key ultimate-js-mode-map "\177" #'ultimate-js-electric-delete)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Angle brackets as delimiters ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun ultimate-js-is-generic-node (pos)
+  "Check if the character at POS is part of a generic type node."
+  (let ((node (treesit-node-parent (treesit-node-at pos))))
+    (when node
+      (or (equal (treesit-node-type node) "type_arguments")
+          (equal (treesit-node-type node) "type_parameters")))))
+
+(defun ultimate-js-update-generic-delimiters (beg end _len)
+  "Update syntax properties for `<` and `>` using Tree-sitter nodes."
+  (save-excursion
+    (goto-char beg)
+    (let ((end (min (point-max) end)))
+      (while (re-search-forward "[<>]" end t)
+        (let ((pos (match-beginning 0)))
+          (if (ultimate-js-is-generic-node pos)
+              (put-text-property pos (1+ pos) 'syntax-table
+                                 (if (char-equal (char-after pos) ?<)
+                                     '(4 . ?>) '(5 . ?<))) ; Delimiters
+            (put-text-property pos (1+ pos) 'syntax-table
+                               '(1 . nil)))))))) ; Punctuation
+
+(add-hook 'ultimate-js-mode-hook
+          (lambda ()
+            (add-hook 'after-change-functions
+                      #'ultimate-js-update-generic-delimiters
+                      nil t)))
+
+(add-hook 'ultimate-js-mode-hook
+          (lambda ()
+            (ultimate-js-update-generic-delimiters (point-min) (point-max) nil)))
+
+(add-hook 'ultimate-js-mode-hook
+          (lambda ()
+            (setq-local parse-sexp-lookup-properties t)))
+
 
 (provide 'ultimate-js-mode)
