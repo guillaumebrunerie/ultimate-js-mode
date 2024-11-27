@@ -304,17 +304,18 @@ Taken from RJSX"
 
 (defun ultimate-js-update-generic-delimiters (beg end _len)
   "Update syntax properties for `<` and `>` using Tree-sitter nodes."
-  (save-excursion
-    (goto-char beg)
-    (let ((end (min (point-max) end)))
-      (while (re-search-forward "[<>]" end t)
-        (let ((pos (match-beginning 0)))
-          (if (ultimate-js-is-generic-node pos)
+  (with-silent-modifications
+    (save-excursion
+      (goto-char beg)
+      (let ((end (min (point-max) end)))
+        (while (re-search-forward "[<>]" end t)
+          (let ((pos (match-beginning 0)))
+            (if (ultimate-js-is-generic-node pos)
+                (put-text-property pos (1+ pos) 'syntax-table
+                                   (if (char-equal (char-after pos) ?<)
+                                       '(4 . ?>) '(5 . ?<))) ; Delimiters
               (put-text-property pos (1+ pos) 'syntax-table
-                                 (if (char-equal (char-after pos) ?<)
-                                     '(4 . ?>) '(5 . ?<))) ; Delimiters
-            (put-text-property pos (1+ pos) 'syntax-table
-                               '(1 . nil)))))))) ; Punctuation
+                                 '(1 . nil))))))))) ; Punctuation
 
 (add-hook 'ultimate-js-mode-hook
           (lambda ()
