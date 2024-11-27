@@ -299,6 +299,11 @@
       "`"
       ] @font-lock-string-face)
 
+   ;; :language 'css
+   ;; :override t
+   ;; :feature 'highlight
+   ;; '(((identifier) @font-lock-tag-face))
+
    :language language
    :feature 'highlight
    '([

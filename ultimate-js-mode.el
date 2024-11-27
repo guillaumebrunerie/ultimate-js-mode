@@ -138,6 +138,18 @@
     table)
   "Syntax table for `ultimate-ts-mode'.")
 
+(defun ultimate-js-mode--language-at-point (point)
+  "Return the language at POINT ."
+  (if-let ((node (treesit-node-at point 'javascript))
+           ((string-equal (treesit-node-type node) "string_fragment"))
+           (parent (treesit-node-parent node))
+           ((string-equal (treesit-node-type parent) "template_string"))
+           (grand-parent (treesit-node-parent parent))
+           ((string-equal (treesit-node-type grand-parent) "call_expression"))
+           (tag (treesit-node-child grand-parent 0))
+           ((string-equal (treesit-node-text tag) "css")))
+      'css 'javascript))
+
 ;;;;;;;;;;;;;;;;
 ;; Major mode ;;
 ;;;;;;;;;;;;;;;;
@@ -174,6 +186,17 @@
 
   (when (treesit-ready-p ultimate-js--lang)
     (treesit-parser-create ultimate-js--lang)
+
+    ;; (treesit-parser-create 'css)
+    ;; (setq-local treesit-range-settings
+    ;;             (treesit-range-rules
+    ;;              :embed 'css
+    ;;              :host ultimate-js--lang
+    ;;              '((call_expression
+    ;;                 function: (identifier) @_ignored
+    ;;                 (:match "\\`css\\'" @_ignored)
+    ;;                 arguments: (template_string (string_fragment) @capture)))))
+    ;; (setq-local treesit-language-at-point-function #'ultimate-js-mode--language-at-point)
 
     ;; Indentation
     (setq-local

@@ -1,6 +1,8 @@
 #!/test/hashline
 // ^ comment
 
+const x = css`.B.C.d{}`;
+
 const f1 = x => x;
 //         ^ variable
 
