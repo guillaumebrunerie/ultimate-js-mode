@@ -239,10 +239,14 @@ Adapted from RJSX"
             (let ((start (- (point) 6)))
               (and (>= start (point-min))
                    (string= (buffer-substring start (point)) "return")))))
-      (progn (self-insert-command 1 ?<)
+      (progn (modify-syntax-entry ?<  "." ultimate-js-mode--syntax-table)
+             (self-insert-command 1 ?<)
              (insert "/>")
-             (backward-char 2))
-    (self-insert-command 1 ?<)))
+             (backward-char 2)
+             (modify-syntax-entry ?<  "(" ultimate-js-mode--syntax-table))
+    (modify-syntax-entry ?<  "." ultimate-js-mode--syntax-table)
+    (self-insert-command 1 ?<)
+    (modify-syntax-entry ?<  "(" ultimate-js-mode--syntax-table)))
 
 (defun ultimate-js-expand-self-closing-tag (text)
   "Expand NODE into a balanced tag.
@@ -295,27 +299,41 @@ Taken from RJSX"
 ;; Angle brackets as delimiters ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defun ultimate-js-is-generic-node (pos)
-  "Check if the character at POS is part of a generic type node."
+(defun ultimate-js-is-opening-angle-bracket (pos)
+  "Check if a < at POS should be treated as an opening bracket."
   (let ((node (treesit-node-parent (treesit-node-at pos))))
     (when node
       (or (equal (treesit-node-type node) "type_arguments")
-          (equal (treesit-node-type node) "type_parameters")))))
+          (equal (treesit-node-type node) "type_parameters")
+          (equal (treesit-node-type node) "jsx_opening_element")
+          (equal (treesit-node-type node) "jsx_self_closing_element")))))
+
+(defun ultimate-js-is-closing-angle-bracket (pos)
+  "Check if a > at POS should be treated as a closing bracket."
+  (let ((node (treesit-node-parent (treesit-node-at pos))))
+    (when node
+      (or (equal (treesit-node-type node) "type_arguments")
+          (equal (treesit-node-type node) "type_parameters")
+          (equal (treesit-node-type node) "jsx_closing_element")
+          (equal (treesit-node-type node) "jsx_self_closing_element")))))
 
 (defun ultimate-js-update-generic-delimiters (beg end _len)
   "Update syntax properties for `<` and `>` using Tree-sitter nodes."
   (with-silent-modifications
     (save-excursion
       (goto-char beg)
+      (beginning-of-line)
       (let ((end (min (point-max) end)))
         (while (re-search-forward "[<>]" end t)
           (let ((pos (match-beginning 0)))
-            (if (ultimate-js-is-generic-node pos)
+            (if (char-equal (char-after pos) ?<)
                 (put-text-property pos (1+ pos) 'syntax-table
-                                   (if (char-equal (char-after pos) ?<)
-                                       '(4 . ?>) '(5 . ?<))) ; Delimiters
+                                   (if (ultimate-js-is-opening-angle-bracket pos)
+                                       '(4 . ?>)
+                                     '(1 . nil)))
               (put-text-property pos (1+ pos) 'syntax-table
-                                 '(1 . nil))))))))) ; Punctuation
+                                 (if (ultimate-js-is-closing-angle-bracket pos)
+                                     '(5 . ?<) '(1 . nil))))))))))
 
 (add-hook 'ultimate-js-mode-hook
           (lambda ()
