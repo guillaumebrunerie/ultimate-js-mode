@@ -103,22 +103,26 @@
 (load "highlights-js")
 (load "highlights-ts")
 (load "highlights-jsx")
+(load "highlights-css")
 
 (defvar ultimate-js-mode--queries-js
   (apply #'treesit-font-lock-rules
          (append
+          ;; (ultimate-js-mode--partial-queries-css)
           (ultimate-js-mode--partial-queries-jsx 'javascript)
           (ultimate-js-mode--partial-queries-js 'javascript))))
 
 (defvar ultimate-js-mode--queries-ts
   (apply #'treesit-font-lock-rules
          (append
+          ;; (ultimate-js-mode--partial-queries-css)
           (ultimate-js-mode--partial-queries-ts 'typescript)
           (ultimate-js-mode--partial-queries-js 'typescript))))
 
 (defvar ultimate-js-mode--queries-tsx
   (apply #'treesit-font-lock-rules
          (append
+          ;; (ultimate-js-mode--partial-queries-css)
           (ultimate-js-mode--partial-queries-ts 'tsx)
           (ultimate-js-mode--partial-queries-jsx 'tsx)
           (ultimate-js-mode--partial-queries-js 'tsx))))
@@ -148,7 +152,7 @@
            ((string-equal (treesit-node-type grand-parent) "call_expression"))
            (tag (treesit-node-child grand-parent 0))
            ((string-equal (treesit-node-text tag) "css")))
-      'css 'javascript))
+      'css ultimate-js--lang))
 
 ;;;;;;;;;;;;;;;;
 ;; Major mode ;;
@@ -193,8 +197,8 @@
     ;;              :embed 'css
     ;;              :host ultimate-js--lang
     ;;              '((call_expression
-    ;;                 function: (identifier) @_ignored
-    ;;                 (:match "\\`css\\'" @_ignored)
+    ;;                 function: (identifier) @_tag
+    ;;                 (:match "\\`css\\'" @_tag)
     ;;                 arguments: (template_string (string_fragment) @capture)))))
     ;; (setq-local treesit-language-at-point-function #'ultimate-js-mode--language-at-point)
 

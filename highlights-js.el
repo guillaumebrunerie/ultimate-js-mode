@@ -299,13 +299,18 @@
       "`"
       ] @font-lock-string-face)
 
-   ;; :language 'css
-   ;; :override t
-   ;; :feature 'highlight
-   ;; '(((identifier) @font-lock-tag-face))
-
    :language language
    :feature 'highlight
    '([
       (number)
-      ] @font-lock-number-face)))
+      ] @font-lock-number-face)
+
+   ;; ;; Trying to give a background to embedded languages
+   ;; :language language
+   ;; :feature 'highlight
+   ;; '((call_expression
+   ;;    function: (identifier) @_ignored
+   ;;    (:match "\\`css\\'" @_ignored)
+   ;;    arguments: (template_string (string_fragment) @font-lock-warning-face)))
+
+   ))

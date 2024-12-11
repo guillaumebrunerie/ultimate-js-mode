@@ -1,7 +1,11 @@
 #!/test/hashline
 // ^ comment
 
-const x = css`.B.C.d{}`;
+const x = css`
+.red {
+    color: red;
+}
+`;
 
 const f1 = x => x;
 //         ^ variable
