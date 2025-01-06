@@ -40,3 +40,5 @@
    :language language
    :feature 'highlight
    '((jsx_self_closing_element (["<" "/>"]) @font-lock-bracket-face))))
+
+(provide 'ultimate-js-mode--highlights-jsx)

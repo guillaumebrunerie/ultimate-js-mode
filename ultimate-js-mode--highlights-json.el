@@ -1,6 +1,6 @@
-(defun ultimate-js-mode--queries-json (language)
+(defun ultimate-js-mode--partial-queries-json (language)
   "Custom highlighting queries"
-  (treesit-font-lock-rules
+  (list
    :language language
    :feature 'highlight
    '((comment) @font-lock-comment-face)
@@ -33,3 +33,5 @@
    :feature 'highlight
    :override t
    '((ERROR) @font-lock-warning-face)))
+
+(provide 'ultimate-js-mode--highlights-json)

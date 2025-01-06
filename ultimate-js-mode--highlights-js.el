@@ -306,3 +306,5 @@
       ] @font-lock-number-face)
 
    ))
+
+(provide 'ultimate-js-mode--highlights-js)

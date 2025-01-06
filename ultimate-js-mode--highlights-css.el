@@ -37,11 +37,6 @@
    :feature 'highlight
    '(((js_comment) @font-lock-comment-face))
 
-   ;; ;; To add a background to embedded CSS, but it doesn’t extend to the end
-   ;; ;; of the line and doesn’t color tabs, so it looks a bit ugly.
-   ;; :language 'css
-   ;; :feature 'highlight
-   ;; :override 'append
-   ;; '(((stylesheet) @css-background-face))
-
    ))
+
+(provide 'ultimate-js-mode--highlights-css)

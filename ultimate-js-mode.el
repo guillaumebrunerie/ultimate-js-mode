@@ -10,6 +10,7 @@
 (require 'treesit)
 (require 'js)
 (require 'typescript-ts-mode)
+(require 'css-mode)
 (eval-when-compile (require 'rx))
 (require 'c-ts-common)
 
@@ -99,30 +100,34 @@
 ;; Syntax highlighting ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(load "highlights-json")
-(load "highlights-js")
-(load "highlights-ts")
-(load "highlights-jsx")
-(load "highlights-css")
+(require 'ultimate-js-mode--highlights-json)
+(require 'ultimate-js-mode--highlights-js)
+(require 'ultimate-js-mode--highlights-ts)
+(require 'ultimate-js-mode--highlights-jsx)
+(require 'ultimate-js-mode--highlights-css)
 
-(defvar ultimate-js-mode--queries-js
+(defun ultimate-js-mode--queries-json ()
+  (apply #'treesit-font-lock-rules
+         (ultimate-js-mode--partial-queries-json 'json)))
+
+(defun ultimate-js-mode--queries-js ()
   (apply #'treesit-font-lock-rules
          (append
-          ;; (ultimate-js-mode--partial-queries-css)
+          (when ultimate-js-mode--embedded-lang-highlight (ultimate-js-mode--partial-queries-css))
           (ultimate-js-mode--partial-queries-jsx 'javascript)
           (ultimate-js-mode--partial-queries-js 'javascript))))
 
-(defvar ultimate-js-mode--queries-ts
+(defun ultimate-js-mode--queries-ts ()
   (apply #'treesit-font-lock-rules
          (append
-          ;; (ultimate-js-mode--partial-queries-css)
+          (when ultimate-js-mode--embedded-lang-highlight (ultimate-js-mode--partial-queries-css))
           (ultimate-js-mode--partial-queries-ts 'typescript)
           (ultimate-js-mode--partial-queries-js 'typescript))))
 
-(defvar ultimate-js-mode--queries-tsx
+(defun ultimate-js-mode--queries-tsx ()
   (apply #'treesit-font-lock-rules
          (append
-          ;; (ultimate-js-mode--partial-queries-css)
+          (when ultimate-js-mode--embedded-lang-highlight (ultimate-js-mode--partial-queries-css))
           (ultimate-js-mode--partial-queries-ts 'tsx)
           (ultimate-js-mode--partial-queries-jsx 'tsx)
           (ultimate-js-mode--partial-queries-js 'tsx))))
@@ -130,10 +135,10 @@
 (defun ultimate-js-mode--font-lock-settings (lang)
   "Highlighting rules"
   (cond
-   ((eq lang 'json) (ultimate-js-mode--queries-json 'json))
-   ((eq lang 'javascript) ultimate-js-mode--queries-js)
-   ((eq lang 'typescript) ultimate-js-mode--queries-ts)
-   ((eq lang 'tsx) ultimate-js-mode--queries-tsx)))
+   ((eq lang 'json) (ultimate-js-mode--queries-json))
+   ((eq lang 'javascript) (ultimate-js-mode--queries-js))
+   ((eq lang 'typescript) (ultimate-js-mode--queries-ts))
+   ((eq lang 'tsx) (ultimate-js-mode--queries-tsx))))
 
 (defvar ultimate-js-mode--syntax-table
   (let ((table (make-syntax-table typescript-ts-mode--syntax-table)))
@@ -153,6 +158,69 @@
            (tag (treesit-node-child grand-parent 0))
            ((string-equal (treesit-node-text tag) "css")))
       'css ultimate-js--lang))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Embedded languages overlays ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defface ultimate-js-mode-embedded-lang-face
+  '((t :background "#030" :extend t))
+  "Face for embedded languages (for instance with a background color and :extend t)")
+
+(defcustom ultimate-js-mode--embedded-lang-highlight nil
+  "If non-nil, enable experimental highlighting of embedded languages."
+  :type 'boolean
+  :group 'ultimate-js-mode)
+
+(defun ultimate-js-mode--update-overlays (ranges parser)
+  (remove-overlays (point-min) (point-max) 'ultimate-js-mode--embedded t)
+  (dolist (r (treesit-parser-included-ranges parser))
+    (ultimate-js-mode--highlight-embedded (car r) (cdr r))))
+
+(defun ultimate-js-mode--highlight-embedded (start end)
+  (let ((overlay (make-overlay (+ start 1) end)))
+    (overlay-put overlay 'face 'ultimate-js-mode-embedded-lang-face)
+    (overlay-put overlay 'ultimate-js-mode--embedded t)))
+
+(defun ultimate-js-mode--highlight-embedded-alt (start end)
+  "Highlight a rectangle from START-ROW to END-ROW and START-COL to END-COL with the given COLOR.
+The background will extend up to END-COL, even beyond the end of the line. Tabs are handled correctly."
+  (let* ((start-row (+ (line-number-at-pos start) 1))
+         (end-row (line-number-at-pos end))
+         (start-col 1)
+         (end-col 40)
+         (face 'ultimate-js-mode-embedded-lang-face))
+    (save-excursion
+      (goto-char (point-min)) ;; Start from the beginning of the buffer
+      (dotimes (line (- end-row start-row))
+        (goto-char (point-min)) ;; Reset point to the top
+        (forward-line (+ start-row line -1)) ;; Move to the current line
+        (let* ((line-start-pos (line-beginning-position))
+               (line-end-pos (line-end-position))
+               ;; Calculate start position by considering columns and tabs
+               (start-column-pos (progn
+                                   (goto-char line-start-pos)
+                                   (forward-char (1- start-col)) ;; Move to start column
+                                   (point)))
+               ;; Calculate end position by considering columns and tabs
+               (end-column-pos (progn
+                                 (goto-char line-start-pos)
+                                 (forward-char end-col) ;; Move to end column
+                                 (point)))
+               ;; Calculate the visual length of the line
+               (visual-line-length (progn (goto-char line-end-pos)
+                                          (current-column)))
+               ;; Check if padding is needed
+               (padding-length (max 0 (- end-col visual-line-length))))
+          ;; Highlight the text within the specified rectangle
+          (let ((overlay (make-overlay start-column-pos (min end-column-pos line-end-pos) (current-buffer) t t)))
+            (overlay-put overlay 'face face)
+            (overlay-put overlay 'ultimate-js-mode--embedded t)
+            (overlay-put overlay 'after-string (propertize (make-string padding-length ?\s)
+                                                           'cursor t
+                                                           'face face))))))))
+
+
 
 ;;;;;;;;;;;;;;;;
 ;; Major mode ;;
@@ -191,16 +259,20 @@
   (when (treesit-ready-p ultimate-js--lang)
     (treesit-parser-create ultimate-js--lang)
 
-    ;; (treesit-parser-create 'css)
-    ;; (setq-local treesit-range-settings
-    ;;             (treesit-range-rules
-    ;;              :embed 'css
-    ;;              :host ultimate-js--lang
-    ;;              '((call_expression
-    ;;                 function: (identifier) @_tag
-    ;;                 (:match "\\`css\\'" @_tag)
-    ;;                 arguments: (template_string (string_fragment) @capture)))))
-    ;; (setq-local treesit-language-at-point-function #'ultimate-js-mode--language-at-point)
+    ;; Embedded languages
+    (when ultimate-js-mode--embedded-lang-highlight
+      (let ((css-parser (treesit-parser-create 'css)))
+        (setq-local treesit-range-settings
+                    (treesit-range-rules
+                     :embed 'css
+                     :host ultimate-js--lang
+                     '((call_expression
+                        function: (identifier) @_tag
+                        (:match "\\`css\\'" @_tag)
+                        arguments: (template_string (string_fragment) @capture)))))
+        (setq-local treesit-language-at-point-function #'ultimate-js-mode--language-at-point)
+        (treesit-parser-add-notifier css-parser #'ultimate-js-mode--update-overlays)))
+
 
     ;; Indentation
     (setq-local

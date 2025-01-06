@@ -163,3 +163,5 @@
       "${" @font-lock-punctuation-face
       (_) @font-lock-embedded-face
       "}" @font-lock-punctuation-face))))
+
+(provide 'ultimate-js-mode--highlights-ts)
