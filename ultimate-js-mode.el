@@ -237,7 +237,7 @@ The background will extend up to END-COL, even beyond the end of the line. Tabs 
 
   ;; Electricity
   (setq-local electric-indent-chars
-              (append "{}():;,<>/" electric-indent-chars))
+              (append "{}()[]:;,<>/" electric-indent-chars))
   (setq-local electric-layout-rules
               '((?\; . after) (?\{ . after) (?\} . before)))
 
